@@ -40,6 +40,7 @@ repos:
         types: [file]
 
       - id: validate-json
+        exclude: (node_modules/|.vscode/|tsconfig.*.json)
         name: Validate JSON Files
         entry: bash -c 'for f in "$@"; do python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f" || exit 1; done' --
         language: system
