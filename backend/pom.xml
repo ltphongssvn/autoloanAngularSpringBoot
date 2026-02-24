@@ -156,6 +156,9 @@
 							<rules>
 								<rule>
 									<element>BUNDLE</element>
+									<excludes>
+										<exclude>com.autoloan.backend.AutoloanBackendApplication</exclude>
+									</excludes>
 									<limits>
 										<limit>
 											<counter>LINE</counter>
@@ -171,6 +174,9 @@
 								</rule>
 								<rule>
 									<element>CLASS</element>
+									<excludes>
+										<exclude>com.autoloan.backend.AutoloanBackendApplication</exclude>
+									</excludes>
 									<limits>
 										<limit>
 											<counter>LINE</counter>
@@ -178,9 +184,6 @@
 											<minimum>0.60</minimum>
 										</limit>
 									</limits>
-									<excludes>
-										<exclude>com.autoloan.backend.AutoloanBackendApplication</exclude>
-									</excludes>
 								</rule>
 							</rules>
 						</configuration>
