@@ -17,7 +17,7 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass  # pragma: allowlist secret
+          POSTGRES_PASSWORD: testpass
           POSTGRES_DB: autoloan_test
         ports:
           - 5432:5432
@@ -92,7 +92,7 @@ jobs:
 
       - name: Unit tests with coverage
         working-directory: frontend
-        run: npx ng test --no-watch --code-coverage
+        run: npx ng test --no-watch --coverage
 
   frontend-build:
     name: Frontend Build
