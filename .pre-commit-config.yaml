@@ -97,7 +97,7 @@ repos:
 
       - id: coverage-frontend
         name: Frontend Coverage Check (pre-push)
-        entry: bash -c 'cd frontend && npx ng test --no-watch --code-coverage'
+        entry: bash -c 'cd frontend && npx ng test --no-watch --coverage'
         language: system
         stages: [pre-push]
         pass_filenames: false
