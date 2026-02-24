@@ -39,6 +39,10 @@ public class ApiKey {
     @Column(name = "last_used_at")
     private Instant lastUsedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, insertable = false, updatable = false)
+    private User user;
+
     @Column(name = "user_id", nullable = false)
     private Long userId;
 

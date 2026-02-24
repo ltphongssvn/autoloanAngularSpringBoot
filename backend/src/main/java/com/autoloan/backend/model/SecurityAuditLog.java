@@ -28,6 +28,10 @@ public class SecurityAuditLog {
     @Column(name = "event_type", nullable = false)
     private String eventType;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
+
     @Column(name = "user_id")
     private Long userId;
 

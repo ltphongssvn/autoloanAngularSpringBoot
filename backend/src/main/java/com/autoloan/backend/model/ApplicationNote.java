@@ -26,8 +26,16 @@ public class ApplicationNote {
 
     private Boolean internal;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "application_id", nullable = false, insertable = false, updatable = false)
+    private Application application;
+
     @Column(name = "application_id", nullable = false)
     private Long applicationId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, insertable = false, updatable = false)
+    private User user;
 
     @Column(name = "user_id", nullable = false)
     private Long userId;

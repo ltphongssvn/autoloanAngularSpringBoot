@@ -52,6 +52,25 @@ class UserTest {
     }
 
     @Test
+    void shouldInitializeEmptyCollections() {
+        User user = User.builder()
+                .email("test@example.com")
+                .encryptedPassword("hashed")
+                .firstName("John")
+                .lastName("Doe")
+                .phone("555-1234")
+                .build();
+
+        assertNotNull(user.getApplications());
+        assertTrue(user.getApplications().isEmpty());
+        assertNotNull(user.getApplicationNotes());
+        assertNotNull(user.getStatusHistories());
+        assertNotNull(user.getVerifiedDocuments());
+        assertNotNull(user.getApiKeys());
+        assertNotNull(user.getSecurityAuditLogs());
+    }
+
+    @Test
     void shouldSetAndGetAllFields() {
         User user = new User();
         user.setEmail("admin@example.com");

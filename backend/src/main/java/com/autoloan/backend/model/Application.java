@@ -9,6 +9,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "applications", indexes = {
@@ -77,6 +79,10 @@ public class Application {
     @Column(name = "ssn_encrypted")
     private String ssnEncrypted;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, insertable = false, updatable = false)
+    private User user;
+
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
@@ -87,4 +93,28 @@ public class Application {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Address> addresses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<FinancialInfo> financialInfos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Vehicle> vehicles = new ArrayList<>();
+
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Document> documents = new ArrayList<>();
+
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ApplicationNote> notes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<StatusHistory> statusHistories = new ArrayList<>();
 }

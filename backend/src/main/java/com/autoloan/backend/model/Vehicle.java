@@ -44,6 +44,10 @@ public class Vehicle {
     @Column(name = "estimated_value", precision = 10, scale = 2)
     private BigDecimal estimatedValue;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "application_id", nullable = false, unique = true, insertable = false, updatable = false)
+    private Application application;
+
     @Column(name = "application_id", nullable = false, unique = true)
     private Long applicationId;
 

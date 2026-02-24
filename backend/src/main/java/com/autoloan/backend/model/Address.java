@@ -44,6 +44,10 @@ public class Address {
     @Column(name = "months_at_address")
     private Integer monthsAtAddress;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "application_id", nullable = false, insertable = false, updatable = false)
+    private Application application;
+
     @Column(name = "application_id", nullable = false)
     private Long applicationId;
 

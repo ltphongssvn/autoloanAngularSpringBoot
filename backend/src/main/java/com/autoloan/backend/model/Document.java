@@ -59,8 +59,16 @@ public class Document {
     @Column(name = "verified_at")
     private Instant verifiedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "verified_by_id", insertable = false, updatable = false)
+    private User verifiedBy;
+
     @Column(name = "verified_by_id")
     private Long verifiedById;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "application_id", nullable = false, insertable = false, updatable = false)
+    private Application application;
 
     @Column(name = "application_id", nullable = false)
     private Long applicationId;

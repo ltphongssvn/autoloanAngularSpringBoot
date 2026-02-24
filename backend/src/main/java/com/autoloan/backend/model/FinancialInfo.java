@@ -57,6 +57,10 @@ public class FinancialInfo {
     @Column(name = "credit_score")
     private Integer creditScore;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "application_id", nullable = false, insertable = false, updatable = false)
+    private Application application;
+
     @Column(name = "application_id", nullable = false)
     private Long applicationId;
 
