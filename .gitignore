@@ -1,0 +1,39 @@
+# .gitignore
+# Root .gitignore for autoloanAngularSpringBoot (Angular + Spring Boot)
+
+# === Environment ===
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === IDEs ===
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+
+# === Backend (Spring Boot) ===
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/*.log
+
+# === Frontend (Angular) ===
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.sass-cache/
+
+# === Logs ===
+*.log
+npm-debug.log*
+
+# === Secrets baseline results (keep .secrets.baseline itself) ===

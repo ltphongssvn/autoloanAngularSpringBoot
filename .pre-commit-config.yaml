@@ -1,0 +1,114 @@
+repos:
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+
+  - repo: local
+    hooks:
+      - id: block-large-binaries
+        name: Block Large Binary Files
+        entry: bash -c 'for f in "$@"; do case "$f" in *.h5|*.pkl|*.pth|*.onnx|*.parquet|*.sqlite3) echo "Blocked binary $f"; exit 1;; esac; done' --
+        language: system
+        types: [file]
+
+      - id: block-env-files
+        name: Block .env Files (allow .env.example)
+        entry: bash -c 'for f in "$@"; do base=$(basename "$f"); if echo "$base" | grep -qE "^\.env($|\.)"; then if [ "$base" != ".env.example" ]; then echo "Blocked env file $f"; exit 1; fi; fi; done' --
+        language: system
+        types: [file]
+
+      - id: fix-line-endings
+        name: Fix Line Endings to LF
+        entry: bash -c 'for f in "$@"; do if file "$f" | grep -q text; then sed -i "s/\r$//" "$f"; fi; done; exit 0' --
+        language: system
+        types: [file]
+
+      - id: fix-eof
+        name: Fix End of Files
+        entry: bash -c 'exit 0' --
+        language: system
+        types: [file]
+
+      - id: trailing-whitespace
+        name: Trim Trailing Whitespace
+        entry: bash -c 'for f in "$@"; do if file "$f" | grep -q text; then sed -i "s/[[:space:]]*$//" "$f"; fi; done; exit 0' --
+        language: system
+        types: [file]
+
+      - id: validate-json
+        name: Validate JSON Files
+        entry: bash -c 'for f in "$@"; do python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f" || exit 1; done' --
+        language: system
+        types: [json]
+
+      - id: validate-yaml
+        name: Validate YAML Files
+        entry: bash -c 'for f in "$@"; do python3 -c "import yaml,sys; yaml.safe_load(open(sys.argv[1]))" "$f" || exit 1; done' --
+        language: system
+        types: [yaml]
+
+      - id: check-large-files
+        name: Check for Large Files
+        entry: bash -c 'for f in "$@"; do base=$(basename "$f"); case "$base" in package-lock.json) continue;; esac; size=$(stat -c%s "$f" 2>/dev/null || stat -f%z "$f" 2>/dev/null); if [ "$size" -gt 512000 ]; then echo "File too large ${size}B $f"; exit 1; fi; done' --
+        language: system
+        types: [file]
+
+      - id: eslint-frontend
+        name: ESLint Check (Frontend)
+        entry: bash -c 'cd apps/frontend && npx eslint --max-warnings=0 src/'
+        language: system
+        files: ^apps/frontend/src/.*\.(ts|tsx)$
+        pass_filenames: false
+
+      - id: typescript-check-backend
+        name: TypeScript Check (Backend)
+        entry: bash -c 'cd apps/backend && npx tsc --noEmit'
+        language: system
+        files: ^apps/backend/src/.*\.ts$
+        pass_filenames: false
+
+      - id: test-backend
+        name: Backend Tests
+        entry: bash -c 'cd apps/backend && npx jest --bail'
+        language: system
+        files: ^apps/backend/src/.*\.ts$
+        pass_filenames: false
+
+      - id: test-frontend
+        name: Frontend Tests
+        entry: bash -c 'cd apps/frontend && npx vitest run --bail 1'
+        language: system
+        files: ^apps/frontend/src/.*\.(ts|tsx)$
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: coverage-backend
+        name: Backend Coverage (pre-push)
+        entry: bash -c 'cd apps/backend && npx jest --coverage'
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+
+      - id: coverage-frontend
+        name: Frontend Coverage (pre-push)
+        entry: bash -c 'cd apps/frontend && npx vitest run --coverage'
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+
+      - id: build-backend
+        name: Backend Build (pre-push)
+        entry: bash -c 'cd apps/backend && npx nest build'
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+
+      - id: build-frontend
+        name: Frontend Build (pre-push)
+        entry: bash -c 'cd apps/frontend && npx next build'
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
