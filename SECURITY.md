@@ -141,7 +141,7 @@ cd frontend && npm audit fix
 cd backend && mvn verify
 
 # Frontend: run tests with coverage
-cd frontend && npx ng test --no-watch --code-coverage
+cd frontend && npx ng test --no-watch --coverage
 ```
 
 **Backend thresholds (enforced by JaCoCo in pom.xml):**
