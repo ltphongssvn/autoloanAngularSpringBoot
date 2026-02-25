@@ -114,6 +114,25 @@ class LoanServiceTest {
     }
 
     @Test
+    void getApplicationByIdShouldReturn() {
+        when(applicationRepository.findById(1L)).thenReturn(Optional.of(existingApp));
+        when(vehicleRepository.findByApplicationId(1L)).thenReturn(Optional.of(existingVehicle));
+
+        LoanApplicationResponse response = loanService.getApplicationById(1L);
+
+        assertEquals(1L, response.getId());
+        assertEquals("Toyota", response.getVehicleMake());
+    }
+
+    @Test
+    void getApplicationByIdShouldThrowWhenNotFound() {
+        when(applicationRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> loanService.getApplicationById(999L));
+    }
+
+    @Test
     void getUserApplicationsShouldReturnList() {
         when(applicationRepository.findByUserId(1L)).thenReturn(List.of(existingApp));
         when(vehicleRepository.findByApplicationId(1L)).thenReturn(Optional.of(existingVehicle));
@@ -122,6 +141,98 @@ class LoanServiceTest {
 
         assertEquals(1, responses.size());
         assertEquals("APP-12345678", responses.get(0).getApplicationNumber());
+    }
+
+    @Test
+    void getAllApplicationsShouldReturnAll() {
+        when(applicationRepository.findAll()).thenReturn(List.of(existingApp));
+        when(vehicleRepository.findByApplicationId(1L)).thenReturn(Optional.of(existingVehicle));
+
+        List<LoanApplicationResponse> responses = loanService.getAllApplications();
+
+        assertEquals(1, responses.size());
+        assertEquals("APP-12345678", responses.get(0).getApplicationNumber());
+    }
+
+    @Test
+    void updateApplicationShouldUpdate() {
+        when(applicationRepository.findById(1L)).thenReturn(Optional.of(existingApp));
+        when(applicationRepository.save(any(Application.class))).thenReturn(existingApp);
+        when(vehicleRepository.findByApplicationId(1L)).thenReturn(Optional.of(existingVehicle));
+        when(vehicleRepository.save(any(Vehicle.class))).thenReturn(existingVehicle);
+
+        LoanApplicationRequest updateReq = new LoanApplicationRequest();
+        updateReq.setLoanAmount(new BigDecimal("30000.00"));
+        updateReq.setDownPayment(new BigDecimal("5000.00"));
+        updateReq.setLoanTerm(48);
+        updateReq.setVehicleMake("Honda");
+        updateReq.setVehicleModel("Accord");
+        updateReq.setVehicleYear(2024);
+
+        LoanApplicationResponse response = loanService.updateApplication(1L, 1L, updateReq);
+
+        assertNotNull(response);
+        verify(applicationRepository).save(any(Application.class));
+        verify(vehicleRepository).save(any(Vehicle.class));
+    }
+
+    @Test
+    void updateApplicationShouldThrowWhenNotOwner() {
+        when(applicationRepository.findById(1L)).thenReturn(Optional.of(existingApp));
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> loanService.updateApplication(1L, 99L, request));
+    }
+
+    @Test
+    void updateApplicationShouldThrowWhenNotDraft() {
+        existingApp.setStatus(ApplicationStatus.SUBMITTED);
+        when(applicationRepository.findById(1L)).thenReturn(Optional.of(existingApp));
+
+        assertThrows(BadRequestException.class,
+                () -> loanService.updateApplication(1L, 1L, request));
+    }
+
+    @Test
+    void updateApplicationShouldThrowWhenNotFound() {
+        when(applicationRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> loanService.updateApplication(99L, 1L, request));
+    }
+
+    @Test
+    void deleteApplicationShouldDelete() {
+        when(applicationRepository.findById(1L)).thenReturn(Optional.of(existingApp));
+
+        loanService.deleteApplication(1L, 1L);
+
+        verify(applicationRepository).delete(existingApp);
+    }
+
+    @Test
+    void deleteApplicationShouldThrowWhenNotOwner() {
+        when(applicationRepository.findById(1L)).thenReturn(Optional.of(existingApp));
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> loanService.deleteApplication(1L, 99L));
+    }
+
+    @Test
+    void deleteApplicationShouldThrowWhenNotDraft() {
+        existingApp.setStatus(ApplicationStatus.SUBMITTED);
+        when(applicationRepository.findById(1L)).thenReturn(Optional.of(existingApp));
+
+        assertThrows(BadRequestException.class,
+                () -> loanService.deleteApplication(1L, 1L));
+    }
+
+    @Test
+    void deleteApplicationShouldThrowWhenNotFound() {
+        when(applicationRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> loanService.deleteApplication(99L, 1L));
     }
 
     @Test
@@ -151,35 +262,5 @@ class LoanServiceTest {
 
         assertThrows(ResourceNotFoundException.class,
                 () -> loanService.submitApplication(1L, 99L));
-    }
-
-    @Test
-    void getAllApplicationsShouldReturnAll() {
-        when(applicationRepository.findAll()).thenReturn(List.of(existingApp));
-        when(vehicleRepository.findByApplicationId(1L)).thenReturn(Optional.of(existingVehicle));
-
-        List<LoanApplicationResponse> responses = loanService.getAllApplications();
-
-        assertEquals(1, responses.size());
-        assertEquals("APP-12345678", responses.get(0).getApplicationNumber());
-    }
-
-    @Test
-    void getApplicationByIdShouldReturn() {
-        when(applicationRepository.findById(1L)).thenReturn(Optional.of(existingApp));
-        when(vehicleRepository.findByApplicationId(1L)).thenReturn(Optional.of(existingVehicle));
-
-        LoanApplicationResponse response = loanService.getApplicationById(1L);
-
-        assertEquals(1L, response.getId());
-        assertEquals("Toyota", response.getVehicleMake());
-    }
-
-    @Test
-    void getApplicationByIdShouldThrowWhenNotFound() {
-        when(applicationRepository.findById(999L)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class,
-                () -> loanService.getApplicationById(999L));
     }
 }

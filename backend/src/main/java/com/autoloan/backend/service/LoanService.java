@@ -71,6 +71,13 @@ public class LoanService {
         return toResponse(app, vehicle);
     }
 
+    public LoanApplicationResponse getApplicationById(Long applicationId) {
+        Application app = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+        Vehicle vehicle = vehicleRepository.findByApplicationId(applicationId).orElse(null);
+        return toResponse(app, vehicle);
+    }
+
     public List<LoanApplicationResponse> getUserApplications(Long userId) {
         return applicationRepository.findByUserId(userId).stream()
                 .map(app -> {
@@ -78,6 +85,64 @@ public class LoanService {
                     return toResponse(app, vehicle);
                 })
                 .toList();
+    }
+
+    public List<LoanApplicationResponse> getAllApplications() {
+        return applicationRepository.findAll().stream()
+                .map(app -> {
+                    Vehicle vehicle = vehicleRepository.findByApplicationId(app.getId()).orElse(null);
+                    return toResponse(app, vehicle);
+                })
+                .toList();
+    }
+
+    @Transactional
+    public LoanApplicationResponse updateApplication(Long applicationId, Long userId, LoanApplicationRequest request) {
+        Application app = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+
+        if (!app.getUserId().equals(userId)) {
+            throw new ResourceNotFoundException("Application not found");
+        }
+
+        if (app.getStatus() != ApplicationStatus.DRAFT) {
+            throw new BadRequestException("Only draft applications can be updated");
+        }
+
+        if (request.getDob() != null) app.setDob(request.getDob());
+        if (request.getLoanAmount() != null) app.setLoanAmount(request.getLoanAmount());
+        if (request.getDownPayment() != null) app.setDownPayment(request.getDownPayment());
+        if (request.getLoanTerm() != null) app.setLoanTerm(request.getLoanTerm());
+
+        Application saved = applicationRepository.save(app);
+
+        Vehicle vehicle = vehicleRepository.findByApplicationId(applicationId).orElse(null);
+        if (vehicle != null) {
+            if (request.getVehicleMake() != null) vehicle.setMake(request.getVehicleMake());
+            if (request.getVehicleModel() != null) vehicle.setModel(request.getVehicleModel());
+            if (request.getVehicleYear() != null) vehicle.setYear(request.getVehicleYear());
+            if (request.getVehicleTrim() != null) vehicle.setTrim(request.getVehicleTrim());
+            if (request.getVehicleVin() != null) vehicle.setVin(request.getVehicleVin());
+            vehicleRepository.save(vehicle);
+        }
+
+        return toResponse(saved, vehicle);
+    }
+
+    @Transactional
+    public void deleteApplication(Long applicationId, Long userId) {
+        Application app = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+
+        if (!app.getUserId().equals(userId)) {
+            throw new ResourceNotFoundException("Application not found");
+        }
+
+        if (app.getStatus() != ApplicationStatus.DRAFT) {
+            throw new BadRequestException("Only draft applications can be deleted");
+        }
+
+        applicationRepository.delete(app);
     }
 
     @Transactional
@@ -99,22 +164,6 @@ public class LoanService {
 
         Vehicle vehicle = vehicleRepository.findByApplicationId(applicationId).orElse(null);
         return toResponse(saved, vehicle);
-    }
-
-    public List<LoanApplicationResponse> getAllApplications() {
-        return applicationRepository.findAll().stream()
-                .map(app -> {
-                    Vehicle vehicle = vehicleRepository.findByApplicationId(app.getId()).orElse(null);
-                    return toResponse(app, vehicle);
-                })
-                .toList();
-    }
-
-    public LoanApplicationResponse getApplicationById(Long applicationId) {
-        Application app = applicationRepository.findById(applicationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
-        Vehicle vehicle = vehicleRepository.findByApplicationId(applicationId).orElse(null);
-        return toResponse(app, vehicle);
     }
 
     private LoanApplicationResponse toResponse(Application app, Vehicle vehicle) {
