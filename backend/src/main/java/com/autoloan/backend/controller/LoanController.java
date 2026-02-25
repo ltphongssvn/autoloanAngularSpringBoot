@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.autoloan.backend.dto.application.ApplicationSignRequest;
 import com.autoloan.backend.dto.application.StatusHistoryResponse;
+import com.autoloan.backend.dto.application.StatusUpdateRequest;
 import com.autoloan.backend.dto.loan.LoanApplicationRequest;
 import com.autoloan.backend.dto.loan.LoanApplicationResponse;
 import com.autoloan.backend.security.JwtTokenProvider;
@@ -102,6 +103,26 @@ public class LoanController {
             @Valid @RequestBody ApplicationSignRequest signRequest) {
         Long userId = getUserIdFromRequest(request);
         return ResponseEntity.ok(workflowService.sign(id, userId, signRequest.getSignatureData()));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<LoanApplicationResponse> updateStatus(
+            HttpServletRequest request,
+            @PathVariable Long id,
+            @Valid @RequestBody StatusUpdateRequest statusRequest) {
+        Long userId = getUserIdFromRequest(request);
+        return ResponseEntity.ok(workflowService.updateStatus(id, userId,
+                statusRequest.getStatus(), statusRequest.getComment()));
+    }
+
+    @PostMapping("/{id}/status")
+    public ResponseEntity<LoanApplicationResponse> updateStatusPost(
+            HttpServletRequest request,
+            @PathVariable Long id,
+            @Valid @RequestBody StatusUpdateRequest statusRequest) {
+        Long userId = getUserIdFromRequest(request);
+        return ResponseEntity.ok(workflowService.updateStatus(id, userId,
+                statusRequest.getStatus(), statusRequest.getComment()));
     }
 
     @GetMapping("/{id}/agreement_pdf")
