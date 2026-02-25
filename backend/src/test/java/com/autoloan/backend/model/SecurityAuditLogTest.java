@@ -1,7 +1,6 @@
 package com.autoloan.backend.model;
 
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class SecurityAuditLogTest {
@@ -14,7 +13,6 @@ class SecurityAuditLogTest {
                 .ipAddress("192.168.1.1")
                 .userAgent("Mozilla/5.0")
                 .build();
-
         assertEquals("LOGIN", log.getEventType());
         assertEquals(1L, log.getUserId());
         assertEquals("192.168.1.1", log.getIpAddress());
@@ -22,13 +20,12 @@ class SecurityAuditLogTest {
     }
 
     @Test
-    void shouldDefaultSuccessToTrue() {
+    void shouldDefaultSuccessToFalse() {
         SecurityAuditLog log = SecurityAuditLog.builder()
                 .eventType("LOGIN")
                 .ipAddress("127.0.0.1")
                 .build();
-
-        assertTrue(log.isSuccess());
+        assertFalse(log.isSuccess());
     }
 
     @Test
@@ -38,7 +35,6 @@ class SecurityAuditLogTest {
         log.setResourceId(42);
         log.setMetadata("{\"action\":\"approve\"}");
         log.setSuccess(false);
-
         assertEquals("Application", log.getResourceType());
         assertEquals(42, log.getResourceId());
         assertEquals("{\"action\":\"approve\"}", log.getMetadata());

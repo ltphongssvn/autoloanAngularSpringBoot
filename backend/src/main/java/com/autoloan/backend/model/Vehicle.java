@@ -10,7 +10,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "vehicles", indexes = {
-        @Index(name = "idx_vehicle_make_model_year", columnList = "make, model, year")
+        @Index(name = "idx_vehicle_make_model_year", columnList = "make, model, vehicle_year")
 })
 @Getter
 @Setter
@@ -29,9 +29,10 @@ public class Vehicle {
     @Column(nullable = false)
     private String model;
 
-    @Column(nullable = false)
+    @Column(name = "vehicle_year", nullable = false)
     private int year;
 
+    @Column(name = "vehicle_trim")
     private String trim;
 
     @Column(unique = true)
@@ -39,6 +40,7 @@ public class Vehicle {
 
     private Integer mileage;
 
+    @Column(name = "vehicle_condition")
     private String condition;
 
     @Column(name = "estimated_value", precision = 10, scale = 2)
