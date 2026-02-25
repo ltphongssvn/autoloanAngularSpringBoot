@@ -43,12 +43,13 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/health",
-                    "/auth/login",
-                    "/auth/signup",
-                    "/auth/refresh",
-                    "/auth/confirm-email",
-                    "/auth/forgot-password",
-                    "/auth/reset-password"
+                    "/api/health",
+                    "/api/auth/login",
+                    "/api/auth/signup",
+                    "/api/auth/refresh",
+                    "/api/auth/confirm-email",
+                    "/api/auth/forgot-password",
+                    "/api/auth/reset-password"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
