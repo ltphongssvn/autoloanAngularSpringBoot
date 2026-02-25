@@ -42,7 +42,7 @@ jobs:
           cache: maven
       - name: Run integration tests
         working-directory: backend
-        run: mvn test -B "-Dtest=com.autoloan.backend.integration.*" -DfailIfNoTests=false
+        run: mvn test -B -Dtest="com.autoloan.backend.integration.**" -Dsurefire.failIfNoSpecifiedTests=false
 
   backend-build:
     name: Backend Build
