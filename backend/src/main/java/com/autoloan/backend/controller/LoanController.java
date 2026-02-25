@@ -1,8 +1,11 @@
+// backend/src/main/java/com/autoloan/backend/controller/LoanController.java
 package com.autoloan.backend.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,12 +20,8 @@ import com.autoloan.backend.dto.application.ApplicationSignRequest;
 import com.autoloan.backend.dto.application.StatusHistoryResponse;
 import com.autoloan.backend.dto.loan.LoanApplicationRequest;
 import com.autoloan.backend.dto.loan.LoanApplicationResponse;
-import com.autoloan.backend.exception.BadRequestException;
-import com.autoloan.backend.exception.ResourceNotFoundException;
-import com.autoloan.backend.model.Application;
-import com.autoloan.backend.model.enums.ApplicationStatus;
-import com.autoloan.backend.repository.ApplicationRepository;
 import com.autoloan.backend.security.JwtTokenProvider;
+import com.autoloan.backend.service.AgreementPdfService;
 import com.autoloan.backend.service.ApplicationWorkflowService;
 import com.autoloan.backend.service.LoanService;
 
@@ -35,16 +34,16 @@ public class LoanController {
 
     private final LoanService loanService;
     private final ApplicationWorkflowService workflowService;
-    private final ApplicationRepository applicationRepository;
+    private final AgreementPdfService agreementPdfService;
     private final JwtTokenProvider jwtTokenProvider;
 
     public LoanController(LoanService loanService,
                            ApplicationWorkflowService workflowService,
-                           ApplicationRepository applicationRepository,
+                           AgreementPdfService agreementPdfService,
                            JwtTokenProvider jwtTokenProvider) {
         this.loanService = loanService;
         this.workflowService = workflowService;
-        this.applicationRepository = applicationRepository;
+        this.agreementPdfService = agreementPdfService;
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
@@ -105,6 +104,17 @@ public class LoanController {
         return ResponseEntity.ok(workflowService.sign(id, userId, signRequest.getSignatureData()));
     }
 
+    @GetMapping("/{id}/agreement_pdf")
+    public ResponseEntity<byte[]> agreementPdf(HttpServletRequest request, @PathVariable Long id) {
+        Long userId = getUserIdFromRequest(request);
+        String role = getRoleFromRequest(request);
+        AgreementPdfService.PdfResult result = agreementPdfService.generate(id, userId, role);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", result.getFilename());
+        return new ResponseEntity<>(result.getBuffer(), headers, HttpStatus.OK);
+    }
+
     @GetMapping("/{id}/history")
     public ResponseEntity<List<StatusHistoryResponse>> getHistory(@PathVariable Long id) {
         return ResponseEntity.ok(workflowService.getHistory(id));
@@ -113,5 +123,10 @@ public class LoanController {
     private Long getUserIdFromRequest(HttpServletRequest request) {
         String token = request.getHeader("Authorization").substring(7);
         return jwtTokenProvider.getUserIdFromToken(token);
+    }
+
+    private String getRoleFromRequest(HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        return jwtTokenProvider.getRoleFromToken(token);
     }
 }
