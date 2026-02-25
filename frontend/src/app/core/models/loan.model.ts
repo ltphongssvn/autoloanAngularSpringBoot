@@ -8,7 +8,7 @@ export interface LoanApplicationRequest {
   vehicleYear: number;
   vehicleTrim?: string;
   vehicleVin?: string;
-  vehicleMileage?: number;
+  vehicleMileage?: number | null;
   vehicleCondition?: string;
   vehicleEstimatedValue?: number;
 }
