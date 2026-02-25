@@ -24,13 +24,14 @@ class SecurityConfigTest {
 
     @Test
     void protectedEndpointShouldBeDenied() throws Exception {
-        mockMvc.perform(get("/api/v1/users/profile"))
+        mockMvc.perform(get("/users/profile"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    void authEndpointsShouldBeAccessible() throws Exception {
-        mockMvc.perform(get("/api/v1/auth/login"))
+    void authLoginEndpointShouldBeAccessible() throws Exception {
+        // No controller yet, so 404 is expected — but not 403
+        mockMvc.perform(get("/auth/login"))
                 .andExpect(status().isNotFound());
     }
 }

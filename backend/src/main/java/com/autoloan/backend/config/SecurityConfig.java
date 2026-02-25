@@ -35,12 +35,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/health",
-                    "/api/v1/auth/login",
-                    "/api/v1/auth/signup",
-                    "/api/v1/auth/refresh",
-                    "/api/v1/auth/confirm-email",
-                    "/api/v1/auth/forgot-password",
-                    "/api/v1/auth/reset-password"
+                    "/auth/login",
+                    "/auth/signup",
+                    "/auth/refresh",
+                    "/auth/confirm-email",
+                    "/auth/forgot-password",
+                    "/auth/reset-password"
                 ).permitAll()
                 .anyRequest().authenticated()
             );
