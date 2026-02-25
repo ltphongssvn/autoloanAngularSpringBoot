@@ -152,4 +152,34 @@ class LoanServiceTest {
         assertThrows(ResourceNotFoundException.class,
                 () -> loanService.submitApplication(1L, 99L));
     }
+
+    @Test
+    void getAllApplicationsShouldReturnAll() {
+        when(applicationRepository.findAll()).thenReturn(List.of(existingApp));
+        when(vehicleRepository.findByApplicationId(1L)).thenReturn(Optional.of(existingVehicle));
+
+        List<LoanApplicationResponse> responses = loanService.getAllApplications();
+
+        assertEquals(1, responses.size());
+        assertEquals("APP-12345678", responses.get(0).getApplicationNumber());
+    }
+
+    @Test
+    void getApplicationByIdShouldReturn() {
+        when(applicationRepository.findById(1L)).thenReturn(Optional.of(existingApp));
+        when(vehicleRepository.findByApplicationId(1L)).thenReturn(Optional.of(existingVehicle));
+
+        LoanApplicationResponse response = loanService.getApplicationById(1L);
+
+        assertEquals(1L, response.getId());
+        assertEquals("Toyota", response.getVehicleMake());
+    }
+
+    @Test
+    void getApplicationByIdShouldThrowWhenNotFound() {
+        when(applicationRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> loanService.getApplicationById(999L));
+    }
 }
