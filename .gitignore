@@ -37,3 +37,4 @@ frontend/.sass-cache/
 npm-debug.log*
 
 # === Secrets baseline results (keep .secrets.baseline itself) ===
+backend/uploads/
