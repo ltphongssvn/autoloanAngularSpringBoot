@@ -1,14 +1,19 @@
 package com.autoloan.backend.controller;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
+import com.autoloan.backend.dto.application.ApplicationSignRequest;
+import com.autoloan.backend.dto.application.StatusHistoryResponse;
 import com.autoloan.backend.dto.loan.LoanApplicationRequest;
 import com.autoloan.backend.dto.loan.LoanApplicationResponse;
 import com.autoloan.backend.exception.BadRequestException;
 import com.autoloan.backend.exception.GlobalExceptionHandler;
 import com.autoloan.backend.exception.ResourceNotFoundException;
+import com.autoloan.backend.repository.ApplicationRepository;
 import com.autoloan.backend.security.JwtTokenProvider;
+import com.autoloan.backend.service.ApplicationWorkflowService;
 import com.autoloan.backend.service.LoanService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -24,9 +29,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,6 +41,12 @@ class LoanControllerTest {
 
     @Mock
     private LoanService loanService;
+
+    @Mock
+    private ApplicationWorkflowService workflowService;
+
+    @Mock
+    private ApplicationRepository applicationRepository;
 
     @Mock
     private JwtTokenProvider jwtTokenProvider;
@@ -128,6 +138,72 @@ class LoanControllerTest {
     }
 
     @Test
+    void updateApplicationShouldReturn200() throws Exception {
+        LoanApplicationRequest request = new LoanApplicationRequest();
+        request.setLoanAmount(new BigDecimal("30000.00"));
+        request.setDownPayment(new BigDecimal("5000.00"));
+        request.setLoanTerm(48);
+        request.setVehicleMake("Honda");
+        request.setVehicleModel("Accord");
+        request.setVehicleYear(2024);
+
+        loanResponse.setLoanAmount(new BigDecimal("30000.00"));
+        when(jwtTokenProvider.getUserIdFromToken("valid-token")).thenReturn(1L);
+        when(loanService.updateApplication(eq(1L), eq(1L), any(LoanApplicationRequest.class))).thenReturn(loanResponse);
+
+        mockMvc.perform(patch("/api/loans/1")
+                        .header("Authorization", "Bearer valid-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.loanAmount").value(30000.00));
+    }
+
+    @Test
+    void updateApplicationShouldReturn400WhenNotDraft() throws Exception {
+        LoanApplicationRequest request = new LoanApplicationRequest();
+        request.setLoanAmount(new BigDecimal("30000.00"));
+        request.setDownPayment(new BigDecimal("5000.00"));
+        request.setLoanTerm(48);
+        request.setVehicleMake("Honda");
+        request.setVehicleModel("Accord");
+        request.setVehicleYear(2024);
+
+        when(jwtTokenProvider.getUserIdFromToken("valid-token")).thenReturn(1L);
+        when(loanService.updateApplication(eq(1L), eq(1L), any()))
+                .thenThrow(new BadRequestException("Only draft applications can be updated"));
+
+        mockMvc.perform(patch("/api/loans/1")
+                        .header("Authorization", "Bearer valid-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deleteApplicationShouldReturn204() throws Exception {
+        when(jwtTokenProvider.getUserIdFromToken("valid-token")).thenReturn(1L);
+        doNothing().when(loanService).deleteApplication(1L, 1L);
+
+        mockMvc.perform(delete("/api/loans/1")
+                        .header("Authorization", "Bearer valid-token"))
+                .andExpect(status().isNoContent());
+
+        verify(loanService).deleteApplication(1L, 1L);
+    }
+
+    @Test
+    void deleteApplicationShouldReturn400WhenNotDraft() throws Exception {
+        when(jwtTokenProvider.getUserIdFromToken("valid-token")).thenReturn(1L);
+        doThrow(new BadRequestException("Only draft applications can be deleted"))
+                .when(loanService).deleteApplication(1L, 1L);
+
+        mockMvc.perform(delete("/api/loans/1")
+                        .header("Authorization", "Bearer valid-token"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void submitApplicationShouldReturn200() throws Exception {
         loanResponse.setStatus("SUBMITTED");
         when(jwtTokenProvider.getUserIdFromToken("valid-token")).thenReturn(1L);
@@ -149,5 +225,48 @@ class LoanControllerTest {
                         .header("Authorization", "Bearer valid-token"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Only draft applications can be submitted"));
+    }
+
+    @Test
+    void signApplicationShouldReturn200() throws Exception {
+        loanResponse.setStatus("SIGNED");
+        when(jwtTokenProvider.getUserIdFromToken("valid-token")).thenReturn(1L);
+        when(workflowService.sign(eq(1L), eq(1L), eq("base64sig"))).thenReturn(loanResponse);
+
+        ApplicationSignRequest signRequest = new ApplicationSignRequest();
+        signRequest.setSignatureData("base64sig");
+
+        mockMvc.perform(post("/api/loans/1/sign")
+                        .header("Authorization", "Bearer valid-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SIGNED"));
+    }
+
+    @Test
+    void signApplicationShouldReturn400WhenNoSignature() throws Exception {
+        ApplicationSignRequest signRequest = new ApplicationSignRequest();
+
+        mockMvc.perform(post("/api/loans/1/sign")
+                        .header("Authorization", "Bearer valid-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signRequest)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getHistoryShouldReturn200() throws Exception {
+        StatusHistoryResponse h = new StatusHistoryResponse();
+        h.setId(1L);
+        h.setFromStatus("DRAFT");
+        h.setToStatus("SUBMITTED");
+        h.setCreatedAt(Instant.now());
+        when(workflowService.getHistory(1L)).thenReturn(List.of(h));
+
+        mockMvc.perform(get("/api/loans/1/history")
+                        .header("Authorization", "Bearer valid-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].fromStatus").value("DRAFT"));
     }
 }
