@@ -7,6 +7,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -31,7 +32,7 @@ class SecurityConfigTest {
     @Test
     void authLoginEndpointShouldBeAccessible() throws Exception {
         // No controller yet, so 404 is expected — but not 403
-        mockMvc.perform(get("/auth/login"))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(post("/api/auth/login").contentType("application/json").content("{}"))
+                .andExpect(status().isBadRequest());
     }
 }
