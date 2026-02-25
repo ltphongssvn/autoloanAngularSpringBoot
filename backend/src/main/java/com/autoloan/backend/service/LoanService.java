@@ -101,6 +101,22 @@ public class LoanService {
         return toResponse(saved, vehicle);
     }
 
+    public List<LoanApplicationResponse> getAllApplications() {
+        return applicationRepository.findAll().stream()
+                .map(app -> {
+                    Vehicle vehicle = vehicleRepository.findByApplicationId(app.getId()).orElse(null);
+                    return toResponse(app, vehicle);
+                })
+                .toList();
+    }
+
+    public LoanApplicationResponse getApplicationById(Long applicationId) {
+        Application app = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+        Vehicle vehicle = vehicleRepository.findByApplicationId(applicationId).orElse(null);
+        return toResponse(app, vehicle);
+    }
+
     private LoanApplicationResponse toResponse(Application app, Vehicle vehicle) {
         LoanApplicationResponse response = new LoanApplicationResponse();
         response.setId(app.getId());
