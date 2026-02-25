@@ -62,6 +62,12 @@
 			<version>${jjwt.version}</version>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- TOTP (MFA) -->
+		<dependency>
+			<groupId>dev.samstevens.totp</groupId>
+			<artifactId>totp</artifactId>
+			<version>1.7.1</version>
+		</dependency>
 		<dependency>
 			<groupId>com.kohlschutter.junixsocket</groupId>
 			<artifactId>junixsocket-core</artifactId>
