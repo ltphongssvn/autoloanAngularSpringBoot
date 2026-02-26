@@ -21,3 +21,7 @@ export interface AuthResponse {
   userId: number;
   otpRequired: boolean;
 }
+
+export interface MessageResponse {
+  message: string;
+}
