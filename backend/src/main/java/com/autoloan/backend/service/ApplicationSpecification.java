@@ -33,9 +33,13 @@ public class ApplicationSpecification {
     private ApplicationSpecification() {
     }
 
+    public static Specification<Application> noOp() {
+        return (root, query, cb) -> cb.conjunction();
+    }
+
     public static Specification<Application> fromOdataFilter(String filterStr) {
         if (filterStr == null || filterStr.isBlank()) {
-            return Specification.where((Specification<Application>) null);
+            return noOp();
         }
 
         return (root, query, cb) -> {
@@ -63,7 +67,7 @@ public class ApplicationSpecification {
 
     public static Specification<Application> withStatus(String status) {
         if (status == null || status.isBlank()) {
-            return Specification.where((Specification<Application>) null);
+            return noOp();
         }
         return (root, query, cb) -> cb.equal(root.get("status").as(String.class), status.toUpperCase());
     }
