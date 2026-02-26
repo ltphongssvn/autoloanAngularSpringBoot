@@ -6,7 +6,6 @@ import { UserService } from './user.service';
 describe('UserService', () => {
   let service: UserService;
   let httpMock: HttpTestingController;
-
   const mockProfile = {
     id: 1, email: 'test@example.com', firstName: 'John', lastName: 'Doe',
     phone: '555-1234', role: 'CUSTOMER', signInCount: 3, createdAt: '2026-01-01'
@@ -37,7 +36,7 @@ describe('UserService', () => {
       expect(res.firstName).toBe('Jane');
     });
     const req = httpMock.expectOne('http://localhost:8080/api/users/me');
-    expect(req.request.method).toBe('PUT');
+    expect(req.request.method).toBe('PATCH');
     req.flush({ ...mockProfile, ...update });
   });
 });
