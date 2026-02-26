@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.autoloan.backend.dto.application.ApplicationSignRequest;
@@ -21,6 +22,7 @@ import com.autoloan.backend.dto.application.StatusHistoryResponse;
 import com.autoloan.backend.dto.application.StatusUpdateRequest;
 import com.autoloan.backend.dto.loan.LoanApplicationRequest;
 import com.autoloan.backend.dto.loan.LoanApplicationResponse;
+import com.autoloan.backend.dto.loan.PaginatedResponse;
 import com.autoloan.backend.security.JwtTokenProvider;
 import com.autoloan.backend.service.AgreementPdfService;
 import com.autoloan.backend.service.ApplicationWorkflowService;
@@ -57,9 +59,15 @@ public class LoanController {
     }
 
     @GetMapping
-    public ResponseEntity<List<LoanApplicationResponse>> getUserApplications(HttpServletRequest request) {
+    public ResponseEntity<PaginatedResponse<LoanApplicationResponse>> getUserApplications(
+            HttpServletRequest request,
+            @RequestParam(name = "$filter", required = false) String filter,
+            @RequestParam(name = "$orderby", required = false) String orderby,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(name = "per_page", defaultValue = "20") int perPage) {
         Long userId = getUserIdFromRequest(request);
-        return ResponseEntity.ok(loanService.getUserApplications(userId));
+        return ResponseEntity.ok(loanService.getApplicationsPaginated(userId, filter, orderby, status, page, perPage));
     }
 
     @GetMapping("/{id}")

@@ -73,11 +73,6 @@ class LoanIntegrationTest extends BaseIntegrationTest {
         return objectMapper.readValue(response.body(), Map.class);
     }
 
-    @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> parseList(HttpResponse<String> response) throws Exception {
-        return objectMapper.readValue(response.body(), List.class);
-    }
-
     private LoanApplicationRequest createValidLoanRequest() {
         LoanApplicationRequest req = new LoanApplicationRequest();
         req.setLoanAmount(new BigDecimal("25000.00"));
@@ -103,13 +98,18 @@ class LoanIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @Order(2)
+    @SuppressWarnings("unchecked")
     void getUserLoansShouldReturnList() throws Exception {
         HttpResponse<String> response = get("/api/loans", authToken);
-        List<Map<String, Object>> loans = parseList(response);
+        Map<String, Object> body = parseBody(response);
 
         assertEquals(200, response.statusCode());
+        List<Map<String, Object>> loans = (List<Map<String, Object>>) body.get("data");
+        assertNotNull(loans);
         assertFalse(loans.isEmpty());
         assertEquals("DRAFT", loans.get(0).get("status"));
+        assertEquals(1, ((Number) body.get("page")).intValue());
+        assertTrue(((Number) body.get("total")).intValue() > 0);
     }
 
     @Test
