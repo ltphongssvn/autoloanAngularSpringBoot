@@ -14,12 +14,14 @@ import com.autoloan.backend.service.NoteService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/loan-officer/applications")
+@PreAuthorize("hasAnyRole('LOAN_OFFICER', 'UNDERWRITER')")
 public class LoanOfficerController {
 
     private final LoanService loanService;
