@@ -5,6 +5,7 @@ export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./features/auth/login').then(m => m.LoginComponent) },
   { path: 'signup', loadComponent: () => import('./features/auth/signup').then(m => m.SignupComponent) },
   { path: 'forgot-password', loadComponent: () => import('./features/auth/forgot-password').then(m => m.ForgotPasswordComponent) },
+  { path: 'reset-password', loadComponent: () => import('./features/auth/reset-password').then(m => m.ResetPasswordComponent) },
   { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard').then(m => m.DashboardComponent), canActivate: [authGuard] },
   { path: 'dashboard/loan-officer', loadComponent: () => import('./features/dashboard/loan-officer-dashboard').then(m => m.LoanOfficerDashboardComponent), canActivate: [authGuard] },
   { path: 'dashboard/loan-officer/:id', loadComponent: () => import('./features/dashboard/loan-officer-detail').then(m => m.LoanOfficerDetailComponent), canActivate: [authGuard] },
