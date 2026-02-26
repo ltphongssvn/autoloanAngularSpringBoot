@@ -10,6 +10,7 @@ export const routes: Routes = [
   { path: 'account-locked', loadComponent: () => import('./features/auth/account-locked').then(m => m.AccountLockedComponent) },
   { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard').then(m => m.DashboardComponent), canActivate: [authGuard] },
   { path: 'dashboard/settings', loadComponent: () => import('./features/dashboard/settings').then(m => m.SettingsComponent), canActivate: [authGuard] },
+  { path: 'dashboard/profile/mfa', loadComponent: () => import('./features/dashboard/mfa-settings').then(m => m.MfaSettingsComponent), canActivate: [authGuard] },
   { path: 'dashboard/loan-officer', loadComponent: () => import('./features/dashboard/loan-officer-dashboard').then(m => m.LoanOfficerDashboardComponent), canActivate: [authGuard] },
   { path: 'dashboard/loan-officer/:id', loadComponent: () => import('./features/dashboard/loan-officer-detail').then(m => m.LoanOfficerDetailComponent), canActivate: [authGuard] },
   { path: 'dashboard/underwriter', loadComponent: () => import('./features/dashboard/underwriter-dashboard').then(m => m.UnderwriterDashboardComponent), canActivate: [authGuard] },
