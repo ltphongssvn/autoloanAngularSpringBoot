@@ -27,6 +27,14 @@ class UserIntegrationTest extends BaseIntegrationTest {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private String authToken;
 
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> unwrapData(Map<String, Object> body) {
+        if (body.containsKey("data") && body.containsKey("status") && body.get("status") instanceof Map) {
+            return (Map<String, Object>) body.get("data");
+        }
+        return body;
+    }
+
     @BeforeAll
     void setUp() throws Exception {
         SignupRequest signup = new SignupRequest();
@@ -40,7 +48,8 @@ class UserIntegrationTest extends BaseIntegrationTest {
         assertEquals(201, signupResponse.statusCode(),
                 "Signup failed with status " + signupResponse.statusCode() + ": " + signupResponse.body());
         Map<String, Object> body = parseBody(signupResponse);
-        authToken = (String) body.get("token");
+        Map<String, Object> data = unwrapData(body);
+        authToken = (String) data.get("token");
         assertNotNull(authToken, "Auth token should not be null after signup");
     }
 
@@ -88,11 +97,12 @@ class UserIntegrationTest extends BaseIntegrationTest {
     void getProfileShouldReturnUserInfo() throws Exception {
         HttpResponse<String> response = get("/api/users/me", authToken);
         Map<String, Object> body = parseBody(response);
+        Map<String, Object> data = unwrapData(body);
 
         assertEquals(200, response.statusCode());
-        assertEquals("usertest@example.com", body.get("email"));
-        assertEquals("User", body.get("firstName"));
-        assertEquals("Test", body.get("lastName"));
+        assertEquals("usertest@example.com", data.get("email"));
+        assertEquals("User", data.get("firstName"));
+        assertEquals("Test", data.get("lastName"));
     }
 
     @Test
@@ -113,11 +123,12 @@ class UserIntegrationTest extends BaseIntegrationTest {
 
         HttpResponse<String> response = put("/api/users/me", update, authToken);
         Map<String, Object> body = parseBody(response);
+        Map<String, Object> data = unwrapData(body);
 
         assertEquals(200, response.statusCode());
-        assertEquals("Updated", body.get("firstName"));
-        assertEquals("Name", body.get("lastName"));
-        assertEquals("555-9999", body.get("phone"));
+        assertEquals("Updated", data.get("firstName"));
+        assertEquals("Name", data.get("lastName"));
+        assertEquals("555-9999", data.get("phone"));
     }
 
     @Test
