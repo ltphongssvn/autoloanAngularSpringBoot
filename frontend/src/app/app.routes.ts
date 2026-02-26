@@ -9,6 +9,7 @@ export const routes: Routes = [
   { path: 'dashboard/loan-officer/:id', loadComponent: () => import('./features/dashboard/loan-officer-detail').then(m => m.LoanOfficerDetailComponent), canActivate: [authGuard] },
   { path: 'dashboard/underwriter', loadComponent: () => import('./features/dashboard/underwriter-dashboard').then(m => m.UnderwriterDashboardComponent), canActivate: [authGuard] },
   { path: 'dashboard/underwriter/:id', loadComponent: () => import('./features/dashboard/underwriter-detail').then(m => m.UnderwriterDetailComponent), canActivate: [authGuard] },
+  { path: 'dashboard/applications/:id/agreement', loadComponent: () => import('./features/loan/agreement').then(m => m.AgreementComponent), canActivate: [authGuard] },
   { path: 'profile', loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent), canActivate: [authGuard] },
   { path: 'loans/new', loadComponent: () => import('./features/loan/loan-form').then(m => m.LoanFormComponent), canActivate: [authGuard] },
   { path: 'loans/:id', loadComponent: () => import('./features/loan/loan-detail').then(m => m.LoanDetailComponent), canActivate: [authGuard] },
