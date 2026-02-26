@@ -1,3 +1,4 @@
+// backend/src/main/java/com/autoloan/backend/controller/UnderwriterController.java
 package com.autoloan.backend.controller;
 
 import com.autoloan.backend.dto.application.ApplicationApprovalRequest;
@@ -15,12 +16,14 @@ import com.autoloan.backend.service.NoteService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/underwriter/applications")
+@PreAuthorize("hasRole('UNDERWRITER')")
 public class UnderwriterController {
 
     private final LoanService loanService;
