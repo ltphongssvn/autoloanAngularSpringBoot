@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -51,6 +52,7 @@ public class LoanController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<LoanApplicationResponse> createApplication(
             HttpServletRequest request,
             @Valid @RequestBody LoanApplicationRequest loanRequest) {
@@ -79,6 +81,7 @@ public class LoanController {
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<LoanApplicationResponse> updateApplication(
             HttpServletRequest request,
             @PathVariable Long id,
@@ -88,6 +91,7 @@ public class LoanController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<Void> deleteApplication(
             HttpServletRequest request,
             @PathVariable Long id) {
@@ -97,6 +101,7 @@ public class LoanController {
     }
 
     @PostMapping("/{id}/submit")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<LoanApplicationResponse> submitApplication(
             HttpServletRequest request,
             @PathVariable Long id) {
@@ -105,6 +110,7 @@ public class LoanController {
     }
 
     @PostMapping("/{id}/sign")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<LoanApplicationResponse> signApplication(
             HttpServletRequest request,
             @PathVariable Long id,
@@ -114,6 +120,7 @@ public class LoanController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'UNDERWRITER')")
     public ResponseEntity<LoanApplicationResponse> updateStatus(
             HttpServletRequest request,
             @PathVariable Long id,
@@ -124,6 +131,7 @@ public class LoanController {
     }
 
     @PostMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'UNDERWRITER')")
     public ResponseEntity<LoanApplicationResponse> updateStatusPost(
             HttpServletRequest request,
             @PathVariable Long id,
