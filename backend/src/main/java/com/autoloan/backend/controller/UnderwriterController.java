@@ -6,6 +6,7 @@ import com.autoloan.backend.dto.application.ApplicationRejectRequest;
 import com.autoloan.backend.dto.application.StatusHistoryResponse;
 import com.autoloan.backend.dto.document.DocumentResponse;
 import com.autoloan.backend.dto.loan.LoanApplicationResponse;
+import com.autoloan.backend.dto.loan.PaginatedResponse;
 import com.autoloan.backend.dto.note.NoteCreateRequest;
 import com.autoloan.backend.dto.note.NoteResponse;
 import com.autoloan.backend.security.JwtTokenProvider;
@@ -45,8 +46,13 @@ public class UnderwriterController {
     }
 
     @GetMapping
-    public ResponseEntity<List<LoanApplicationResponse>> findAll() {
-        return ResponseEntity.ok(loanService.getAllApplications());
+    public ResponseEntity<PaginatedResponse<LoanApplicationResponse>> findAll(
+            @RequestParam(name = "$filter", required = false) String filter,
+            @RequestParam(name = "$orderby", required = false) String orderby,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(name = "per_page", defaultValue = "20") int perPage) {
+        return ResponseEntity.ok(loanService.getApplicationsPaginated(null, filter, orderby, status, page, perPage));
     }
 
     @GetMapping("/{id}")
