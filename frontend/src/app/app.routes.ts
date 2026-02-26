@@ -7,6 +7,7 @@ export const routes: Routes = [
   { path: 'forgot-password', loadComponent: () => import('./features/auth/forgot-password').then(m => m.ForgotPasswordComponent) },
   { path: 'reset-password', loadComponent: () => import('./features/auth/reset-password').then(m => m.ResetPasswordComponent) },
   { path: 'confirm-email', loadComponent: () => import('./features/auth/confirm-email').then(m => m.ConfirmEmailComponent) },
+  { path: 'account-locked', loadComponent: () => import('./features/auth/account-locked').then(m => m.AccountLockedComponent) },
   { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard').then(m => m.DashboardComponent), canActivate: [authGuard] },
   { path: 'dashboard/loan-officer', loadComponent: () => import('./features/dashboard/loan-officer-dashboard').then(m => m.LoanOfficerDashboardComponent), canActivate: [authGuard] },
   { path: 'dashboard/loan-officer/:id', loadComponent: () => import('./features/dashboard/loan-officer-detail').then(m => m.LoanOfficerDetailComponent), canActivate: [authGuard] },
