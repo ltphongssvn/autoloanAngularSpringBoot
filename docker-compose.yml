@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:16-alpine
@@ -27,13 +25,14 @@ services:
       SPRING_DATASOURCE_PASSWORD: autoloan123 # pragma: allowlist secret
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      SERVER_SERVLET_CONTEXT_PATH: / # pragma: allowlist secret
       JWT_SECRET: docker-compose-dev-secret-key-min-32-chars-long # pragma: allowlist secret
       JWT_EXPIRATION: 86400000
     depends_on:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      test: ["CMD-SHELL", "nc -z localhost 8080"]
       interval: 10s
       timeout: 5s
       retries: 10
