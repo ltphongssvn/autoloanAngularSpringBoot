@@ -43,7 +43,7 @@ INSERT INTO users (id, email, encrypted_password, first_name, last_name, phone, 
 (11, 'gabhalley@gmail.com',             '$2b$12$D2S/StgaUszDHyA2vDson.N0ep55TeFhyZDZfvv0efiQ2e9R7RV0u', 'Gab',       'Halley',     '714-555-9994', 'CUSTOMER', 0, 0, NOW(), NOW(), NOW()),
 -- Staff
 (12, 'officer@example.com',             '$2b$12$D2S/StgaUszDHyA2vDson.N0ep55TeFhyZDZfvv0efiQ2e9R7RV0u', 'Thuy',      'Nguyen',     '714-555-2001', 'LOAN_OFFICER', 0, 0, NOW(), NOW(), NOW()),
-(13, 'underwriter@example.com',         '$2b$12$D2S/StgaUszDHyA2vDson.N0ep55TeFhyZDZfvv0efiQ2e9R7RV0u', 'Loi',       'Luu',        '714-555-3001', 'UNDERWRITER',  NOW(), NOW(), NOW());
+(13, 'underwriter@example.com',         '$2b$12$D2S/StgaUszDHyA2vDson.N0ep55TeFhyZDZfvv0efiQ2e9R7RV0u', 'Loi',       'Luu',        '714-555-3001', 'UNDERWRITER',  0, 0, NOW(), NOW(), NOW());
 
 SELECT setval('users_id_seq', 13);
 
@@ -54,7 +54,7 @@ INSERT INTO applications (id, user_id, status, current_step, application_number,
 
 -- 2. Joseph - Submitted
 INSERT INTO applications (id, user_id, status, current_step, application_number, dob, ssn_encrypted, loan_amount, down_payment, loan_term, interest_rate, monthly_payment, submitted_at, created_at, updated_at) VALUES
-(2, 2, 'SUBMITTED', 5, 'AL-0002', '1985-07-22', '234-56-7890', 30000.00, 5000.00, 48, 5.90, 573.62, 0, 0, NOW(), NOW(), NOW());
+(2, 2, 'SUBMITTED', 5, 'AL-0002', '1985-07-22', '234-56-7890', 30000.00, 5000.00, 48, 5.90, 573.62, NOW(), NOW(), NOW());
 
 -- 3. Hai - Under Review
 INSERT INTO applications (id, user_id, status, current_step, application_number, dob, ssn_encrypted, loan_amount, down_payment, loan_term, interest_rate, monthly_payment, submitted_at, created_at, updated_at) VALUES
