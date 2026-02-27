@@ -66,6 +66,9 @@ describe('AuthService', () => {
     localStorage.setItem('auth_token', 'jwt123');
     localStorage.setItem('auth_user', '{}');
     service.logout();
+    const req = httpMock.expectOne(`${apiUrl}/logout`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush({ message: 'Logged out' });
     expect(localStorage.getItem('auth_token')).toBeNull();
     expect(localStorage.getItem('auth_user')).toBeNull();
     expect(service.isAuthenticated()).toBe(false);
@@ -135,5 +138,16 @@ describe('AuthService', () => {
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ email: 'test@example.com' });
     req.flush({ message: 'Confirmation sent' });
+  });
+
+  it('should get current user with getMe', () => {
+    const mock = buildAuthResponse('jwt_me', 'me@test.com', 'CUSTOMER');
+    service.getMe().subscribe(res => {
+      expect(res.token).toBe('jwt_me');
+    });
+    const req = httpMock.expectOne(`${apiUrl}/me`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mock);
+    expect(localStorage.getItem('auth_token')).toBe('jwt_me');
   });
 });

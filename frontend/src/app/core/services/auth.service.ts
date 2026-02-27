@@ -14,7 +14,6 @@ export class AuthService {
   private readonly http = inject(HttpClient);
 
   private currentUserSignal = signal<AuthResponse | null>(this.getStoredUser());
-
   readonly currentUser = this.currentUserSignal.asReadonly();
   readonly isAuthenticated = computed(() => !!this.currentUserSignal());
   readonly userRole = computed(() => this.currentUserSignal()?.role ?? null);
@@ -34,9 +33,20 @@ export class AuthService {
   }
 
   logout(): void {
+    const token = this.getToken();
+    if (token) {
+      this.http.delete<MessageResponse>(`${this.apiUrl}/logout`).subscribe({
+        error: () => { /* ignore logout errors */ }
+      });
+    }
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
     this.currentUserSignal.set(null);
+  }
+
+  getMe(): Observable<AuthResponse> {
+    return this.http.get<AuthResponse>(`${this.apiUrl}/me`)
+      .pipe(tap(response => this.handleAuth(response)));
   }
 
   getToken(): string | null {
