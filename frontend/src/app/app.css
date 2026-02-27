@@ -1,0 +1,12 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.app-content {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
