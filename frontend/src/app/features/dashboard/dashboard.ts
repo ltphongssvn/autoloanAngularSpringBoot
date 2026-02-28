@@ -15,7 +15,7 @@ import { LoanApplicationResponse } from '../../core/models/loan.model';
         <h2>Dashboard</h2>
         <div>
           <span>{{ user()?.firstName }} {{ user()?.lastName }}</span>
-          <button (click)="logout()">Logout</button>
+
         </div>
       </header>
       <section>
