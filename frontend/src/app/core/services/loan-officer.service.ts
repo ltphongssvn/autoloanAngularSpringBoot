@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { LoanApplicationResponse } from '../models/loan.model';
 import { NoteResponse, NoteCreateRequest } from '../models/note.model';
@@ -44,7 +45,7 @@ export class LoanOfficerService {
     if (params?.status) httpParams = httpParams.set('status', params.status);
     if (params?.page) httpParams = httpParams.set('page', params.page.toString());
     if (params?.perPage) httpParams = httpParams.set('per_page', params.perPage.toString());
-    return this.http.get<PaginatedResponse<LoanApplicationResponse>>(this.apiUrl, { params: httpParams });
+    return this.http.get<PaginatedResponse<LoanApplicationResponse> | {data: PaginatedResponse<LoanApplicationResponse>}>(this.apiUrl, { params: httpParams }).pipe(map((res: unknown) => { const r = res as Record<string, unknown>; if (r["page"] !== undefined) return r as unknown as PaginatedResponse<LoanApplicationResponse>; const inner = r["data"] as Record<string, unknown>; if (inner && inner["page"] !== undefined) return inner as unknown as PaginatedResponse<LoanApplicationResponse>; return { data: (Array.isArray(r["data"]) ? r["data"] : []) as LoanApplicationResponse[], page: 1, perPage: 20, total: 0, totalPages: 0 }; }));
   }
 
   get(id: number): Observable<LoanApplicationResponse> {
