@@ -1,7 +1,9 @@
+// frontend/src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
+  { path: '', loadComponent: () => import('./features/auth/landing').then(m => m.LandingComponent) },
   { path: 'login', loadComponent: () => import('./features/auth/login').then(m => m.LoginComponent) },
   { path: 'signup', loadComponent: () => import('./features/auth/signup').then(m => m.SignupComponent) },
   { path: 'forgot-password', loadComponent: () => import('./features/auth/forgot-password').then(m => m.ForgotPasswordComponent) },
@@ -21,5 +23,5 @@ export const routes: Routes = [
   { path: 'profile', loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent), canActivate: [authGuard] },
   { path: 'loans/new', loadComponent: () => import('./features/loan/loan-form').then(m => m.LoanFormComponent), canActivate: [authGuard] },
   { path: 'loans/:id', loadComponent: () => import('./features/loan/loan-detail').then(m => m.LoanDetailComponent), canActivate: [authGuard] },
-  { path: '', redirectTo: '/login', pathMatch: 'full' }
+  { path: '**', redirectTo: '' }
 ];
