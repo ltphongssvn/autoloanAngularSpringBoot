@@ -1,3 +1,4 @@
+// frontend/src/app/features/dashboard/dashboard.ts
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
@@ -11,113 +12,179 @@ import { LoanApplicationResponse } from '../../core/models/loan.model';
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule],
   template: `
-    <div class="dashboard">
-      <div class="welcome">
+    <div class="dashboard-layout">
+      <!-- Header Bar -->
+      <header class="header-bar">
         <h2>Customer Dashboard</h2>
-        <p class="greeting">Welcome back, {{ user()?.firstName }}!</p>
-      </div>
+        <div class="header-actions">
+          <a routerLink="/dashboard/settings" class="btn btn-outlined">
+            &#9881; Settings
+          </a>
+          <button class="btn btn-danger-outlined" (click)="logout()">
+            &#10140; Logout
+          </button>
+        </div>
+      </header>
 
-      <section>
-        <div class="actions">
-          <h3>My Applications</h3>
-          <a class="btn-new" routerLink="/loans/new">New Application</a>
+      <div class="dashboard-content">
+        <div class="welcome">
+          <p class="greeting">Welcome back, {{ user()?.firstName || 'User' }}!</p>
         </div>
 
-        <div class="filters">
-          <div class="filter-group">
-            <label for="statusFilter">Filter by Status</label>
-            <select id="statusFilter" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
-              <option value="">All Statuses</option>
-              <option value="DRAFT">Draft</option>
-              <option value="SUBMITTED">Submitted</option>
-              <option value="UNDER_REVIEW">Under Review</option>
-              <option value="PENDING_DOCUMENTS">Pending Documents</option>
-              <option value="APPROVED">Approved</option>
-              <option value="REJECTED">Rejected</option>
-              <option value="SIGNED">Signed</option>
-            </select>
+        <section>
+          <div class="actions">
+            <h3>My Applications</h3>
+            <a class="btn btn-primary" routerLink="/loans/new">+ New Application</a>
           </div>
-          <div class="filter-group">
-            <label for="sortBy">Sort By</label>
-            <select id="sortBy" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-            </select>
-          </div>
-        </div>
 
-        @if (filteredApplications().length === 0) {
-          <div class="empty-state">
-            <p class="empty-title">No applications found</p>
-            <p class="empty-sub">{{ statusFilter() ? 'Try changing your filter settings' : 'Start your first loan application today!' }}</p>
-            @if (!statusFilter()) {
-              <a class="btn-new" routerLink="/loans/new">Create Application</a>
-            }
+          <div class="filters">
+            <div class="filter-group">
+              <label for="statusFilter">Filter by Status</label>
+              <select id="statusFilter" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+                <option value="">All Statuses</option>
+                <option value="DRAFT">Draft</option>
+                <option value="SUBMITTED">Submitted</option>
+                <option value="UNDER_REVIEW">Under Review</option>
+                <option value="PENDING_DOCUMENTS">Pending Documents</option>
+                <option value="APPROVED">Approved</option>
+                <option value="REJECTED">Rejected</option>
+                <option value="SIGNED">Signed</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="sortBy">Sort By</label>
+              <select id="sortBy" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+              </select>
+            </div>
           </div>
-        }
 
-        <div class="grid">
-          @for (app of filteredApplications(); track app.id) {
-            <div class="card" [class.approved]="app.status === 'APPROVED'" [class.rejected]="app.status === 'REJECTED'">
-              <div class="card-header">
-                <div class="app-title">
-                  <strong>{{ app.applicationNumber }}</strong>
-                  @if (app.status === 'DRAFT') {
-                    <span class="tag incomplete">(Incomplete)</span>
-                  }
-                </div>
-                <span class="tag status" [class]="'status-' + app.status.toLowerCase()">{{ formatStatus(app.status) }}</span>
-              </div>
-              @if (app.vehicleMake) {
-                <div class="vehicle">{{ app.vehicleMake }} {{ app.vehicleModel }} {{ app.vehicleYear }}</div>
-              }
-              <div class="details">
-                @if (app.loanAmount) {
-                  <span>{{ app.loanAmount | currency:'USD':'symbol':'1.0-0' }}</span>
-                }
-                @if (app.loanTerm) {
-                  <span> | {{ app.loanTerm }} months</span>
-                }
-              </div>
-              <div class="date">
-                @if (app.status === 'DRAFT') {
-                  Last saved: {{ app.updatedAt | date:'M/d/yyyy' }}
-                } @else {
-                  Created: {{ app.createdAt | date:'M/d/yyyy' }}
-                }
-              </div>
-              <div class="card-actions">
-                @if (app.status === 'DRAFT') {
-                  <button class="btn-delete" (click)="deleteApp(app.id)" title="Delete">&#128465;</button>
-                }
-                <a class="view-link" [routerLink]="['/loans', app.id]">View</a>
-              </div>
+          @if (errorMessage) {
+            <div class="alert alert-error">{{ errorMessage }}</div>
+          }
+
+          @if (loading) {
+            <div class="loading-state">
+              <div class="spinner"></div>
+              <p>Loading applications...</p>
             </div>
           }
-        </div>
-      </section>
+
+          @if (!loading && filteredApplications().length === 0) {
+            <div class="empty-state">
+              <p class="empty-title">No applications found</p>
+              <p class="empty-sub">{{ statusFilter() ? 'Try changing your filter settings' : 'Start your first loan application today!' }}</p>
+              @if (!statusFilter()) {
+                <a class="btn btn-primary" routerLink="/loans/new">Create Application</a>
+              }
+            </div>
+          }
+
+          @if (!loading) {
+            <div class="grid">
+              @for (app of filteredApplications(); track app.id) {
+                <div class="card" [class.approved]="app.status === 'APPROVED'" [class.rejected]="app.status === 'REJECTED'">
+                  <div class="card-header">
+                    <div class="app-title">
+                      <strong>{{ app.applicationNumber }}</strong>
+                      @if (app.status === 'DRAFT') {
+                        <span class="tag incomplete">(Incomplete)</span>
+                      }
+                    </div>
+                    <span class="tag status" [class]="'status-' + app.status.toLowerCase()">{{ formatStatus(app.status) }}</span>
+                  </div>
+                  @if (app.vehicleMake) {
+                    <div class="vehicle">{{ app.vehicleMake }} {{ app.vehicleModel }} {{ app.vehicleYear }}</div>
+                  }
+                  <div class="details">
+                    @if (app.loanAmount) {
+                      <span>{{ app.loanAmount | currency:'USD':'symbol':'1.0-0' }}</span>
+                    }
+                    @if (app.loanTerm) {
+                      <span> | {{ app.loanTerm }} months</span>
+                    }
+                  </div>
+                  <div class="date">
+                    @if (app.status === 'DRAFT') {
+                      Last saved: {{ app.updatedAt | date:'M/d/yyyy' }}
+                    } @else {
+                      Created: {{ app.createdAt | date:'M/d/yyyy' }}
+                    }
+                  </div>
+                  <div class="card-actions">
+                    @if (app.status === 'DRAFT') {
+                      <button class="btn-delete" (click)="deleteApp(app.id)" title="Delete">&#128465;</button>
+                    }
+                    <a class="view-link" [routerLink]="app.status === 'APPROVED' ? ['/dashboard/applications', app.id, 'agreement'] : ['/loans', app.id]">View</a>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      </div>
     </div>
   `,
   styles: [`
-    .dashboard { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    .dashboard-layout { min-height: 100vh; background: #f5f5f5; }
+    .header-bar {
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0.875rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-bar h2 { margin: 0; font-size: 1.35rem; color: #333; }
+    .header-actions { display: flex; gap: 0.5rem; }
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      border: none;
+      font-weight: 500;
+    }
+    .btn-primary { background: #1976d2; color: white; }
+    .btn-primary:hover { background: #1565c0; }
+    .btn-outlined { background: transparent; color: #333; border: 1px solid #d1d5db; }
+    .btn-outlined:hover { background: #f3f4f6; }
+    .btn-danger-outlined { background: transparent; color: #dc2626; border: 1px solid #fca5a5; }
+    .btn-danger-outlined:hover { background: #fef2f2; }
+    .dashboard-content { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem; }
     .welcome { margin-bottom: 1.5rem; }
-    .welcome h2 { margin: 0 0 0.25rem; font-size: 1.5rem; }
     .greeting { color: #555; margin: 0; font-size: 1.1rem; }
     .actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
     .actions h3 { margin: 0; font-size: 1.2rem; }
-    .btn-new {
-      background: #2563eb; color: #fff; padding: 0.5rem 1rem; border-radius: 6px;
-      text-decoration: none; font-size: 0.9rem; font-weight: 500; display: inline-block;
-    }
-    .btn-new:hover { background: #1d4ed8; }
     .filters { display: flex; gap: 1rem; margin-bottom: 1.25rem; }
     .filter-group { display: flex; flex-direction: column; gap: 0.25rem; }
     .filter-group label { font-size: 0.8rem; color: #666; font-weight: 500; }
     .filter-group select {
-      padding: 0.4rem 0.6rem; border: 1px solid #d1d5db; border-radius: 6px;
-      font-size: 0.85rem; background: #fff;
+      padding: 0.4rem 0.6rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      background: #fff;
     }
-    .empty-state { text-align: center; padding: 3rem 1rem; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; }
+    .alert { padding: 0.75rem 1rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem; }
+    .alert-error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+    .loading-state { text-align: center; padding: 3rem 1rem; }
+    .loading-state p { color: #555; margin-top: 1rem; }
+    .spinner {
+      width: 40px; height: 40px; border: 3px solid #e0e0e0;
+      border-top: 3px solid #1976d2; border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-state {
+      text-align: center; padding: 3rem 1rem; background: #fff;
+      border: 1px solid #e5e7eb; border-radius: 8px;
+    }
     .empty-title { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.5rem; }
     .empty-sub { color: #888; margin: 0 0 1rem; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
@@ -150,9 +217,7 @@ import { LoanApplicationResponse } from '../../core/models/loan.model';
       padding: 0.25rem; border-radius: 4px; line-height: 1;
     }
     .btn-delete:hover { background: #fee2e2; }
-    .view-link {
-      font-size: 0.85rem; color: #2563eb; text-decoration: none; font-weight: 500;
-    }
+    .view-link { font-size: 0.85rem; color: #2563eb; text-decoration: none; font-weight: 500; }
     .view-link:hover { text-decoration: underline; }
   `]
 })
@@ -165,6 +230,8 @@ export class DashboardComponent implements OnInit {
   applications = signal<LoanApplicationResponse[]>([]);
   statusFilter = signal('');
   sortBy = signal('newest');
+  loading = false;
+  errorMessage = '';
 
   filteredApplications = computed(() => {
     let apps = [...this.applications()];
@@ -182,9 +249,17 @@ export class DashboardComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.loading = true;
     this.loanService.getApplications().subscribe({
-      next: (apps) => this.applications.set(apps),
-      error: () => this.applications.set([])
+      next: (apps) => {
+        this.applications.set(apps);
+        this.loading = false;
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.message ?? 'Failed to load applications';
+        this.applications.set([]);
+        this.loading = false;
+      }
     });
   }
 
