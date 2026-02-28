@@ -60,18 +60,18 @@ import { LoanApplicationResponse } from '../../core/models/loan.model';
             </div>
           </div>
 
-          @if (errorMessage) {
-            <div class="alert alert-error">{{ errorMessage }}</div>
+          @if (errorMessage()) {
+            <div class="alert alert-error">{{ errorMessage() }}</div>
           }
 
-          @if (loading) {
+          @if (loading()) {
             <div class="loading-state">
               <div class="spinner"></div>
               <p>Loading applications...</p>
             </div>
           }
 
-          @if (!loading && filteredApplications().length === 0) {
+          @if (!loading() && filteredApplications().length === 0) {
             <div class="empty-state">
               <p class="empty-title">No applications found</p>
               <p class="empty-sub">{{ statusFilter() ? 'Try changing your filter settings' : 'Start your first loan application today!' }}</p>
@@ -81,7 +81,7 @@ import { LoanApplicationResponse } from '../../core/models/loan.model';
             </div>
           }
 
-          @if (!loading) {
+          @if (!loading()) {
             <div class="grid">
               @for (app of filteredApplications(); track app.id) {
                 <div class="card" [class.approved]="app.status === 'APPROVED'" [class.rejected]="app.status === 'REJECTED'">
@@ -230,8 +230,8 @@ export class DashboardComponent implements OnInit {
   applications = signal<LoanApplicationResponse[]>([]);
   statusFilter = signal('');
   sortBy = signal('newest');
-  loading = false;
-  errorMessage = '';
+  loading = signal(false);
+  errorMessage = signal('');
 
   filteredApplications = computed(() => {
     let apps = [...this.applications()];
@@ -249,16 +249,16 @@ export class DashboardComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loading = true;
+    this.loading.set(true);
     this.loanService.getApplications().subscribe({
       next: (apps) => {
         this.applications.set(apps);
-        this.loading = false;
+        this.loading.set(false);
       },
       error: (err) => {
-        this.errorMessage = err.error?.message ?? 'Failed to load applications';
+        this.errorMessage.set(err.error?.message ?? 'Failed to load applications');
         this.applications.set([]);
-        this.loading = false;
+        this.loading.set(false);
       }
     });
   }
