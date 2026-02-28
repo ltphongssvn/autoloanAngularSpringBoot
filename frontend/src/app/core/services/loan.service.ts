@@ -18,8 +18,8 @@ export class LoanService {
   }
 
   getApplications(): Observable<LoanApplicationResponse[]> {
-    return this.http.get<Record<string, unknown>>(this.apiUrl).pipe(
-      map((res) => { const outer = res?.['data'] as Record<string, unknown> | undefined; return (outer?.['data'] as LoanApplicationResponse[]) ?? (outer as unknown as LoanApplicationResponse[]) ?? []; })
+    return this.http.get<{data: LoanApplicationResponse[]}>(this.apiUrl).pipe(
+      map((res) => res.data ?? [])
     );
   }
 
