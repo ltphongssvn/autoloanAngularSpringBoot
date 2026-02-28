@@ -196,9 +196,9 @@ export class LoanOfficerDashboardComponent implements OnInit {
   searchTerm = '';
 
   // Stats computed from current page data
-  statSubmitted = computed(() => this.applications().filter(a => a.status === 'SUBMITTED').length);
+  statSubmitted = computed(() => this.applications().filter(a => a.status === 'SUBMITTED' || a.status === 'DRAFT').length);
   statReview = computed(() => this.applications().filter(a => a.status === 'IN_REVIEW' || a.status === 'UNDER_REVIEW').length);
-  statVerifying = computed(() => this.applications().filter(a => a.status === 'VERIFYING' || a.status === 'PENDING').length);
+  statVerifying = computed(() => this.applications().filter(a => a.status === 'VERIFYING' || a.status === 'PENDING_DOCUMENTS').length);
 
   // Client-side search filter
   filteredApps = computed(() => {
