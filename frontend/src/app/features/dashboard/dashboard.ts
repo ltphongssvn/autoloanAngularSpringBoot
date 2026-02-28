@@ -166,7 +166,7 @@ export class DashboardComponent implements OnInit {
   }
 
   formatStatus(status: string): string {
-    return status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
   }
 
   logout(): void {
