@@ -6,6 +6,14 @@ import { environment } from '../../../environments/environment';
 import { LoanApplicationRequest, LoanApplicationResponse } from '../models/loan.model';
 import { StatusHistoryResponse } from './loan-officer.service';
 
+interface PaginatedData {
+  data: LoanApplicationResponse[];
+  page: number;
+  perPage: number;
+  total: number;
+  totalPages: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -18,8 +26,13 @@ export class LoanService {
   }
 
   getApplications(): Observable<LoanApplicationResponse[]> {
-    return this.http.get<{data: LoanApplicationResponse[]}>(this.apiUrl).pipe(
-      map((res) => res.data ?? [])
+    return this.http.get<{data: LoanApplicationResponse[] | PaginatedData}>(this.apiUrl).pipe(
+      map((res) => {
+        const payload = res?.data;
+        if (Array.isArray(payload)) return payload;
+        if (payload && 'data' in payload) return payload.data ?? [];
+        return [];
+      })
     );
   }
 
