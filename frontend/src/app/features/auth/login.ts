@@ -149,7 +149,10 @@ export class LoginComponent {
     this.errorMessage = '';
     this.authService.login(this.form.getRawValue()).subscribe({
       next: () => {
-        this.router.navigate(['/dashboard']);
+        const role = this.authService.userRole();
+        if (role === 'LOAN_OFFICER') this.router.navigate(['/dashboard/loan-officer']);
+        else if (role === 'UNDERWRITER') this.router.navigate(['/dashboard/underwriter']);
+        else this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.loading = false;
