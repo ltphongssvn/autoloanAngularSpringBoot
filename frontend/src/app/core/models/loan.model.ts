@@ -1,3 +1,4 @@
+// frontend/src/app/core/models/loan.model.ts
 export interface LoanApplicationRequest {
   loanAmount: number;
   downPayment: number;
@@ -28,6 +29,9 @@ export interface LoanApplicationResponse {
   userId: number;
   submittedAt?: string;
   decidedAt?: string;
+  signatureData?: string;
+  signedAt?: string;
+  agreementAccepted?: boolean;
   createdAt: string;
   updatedAt: string;
   vehicleMake?: string;
@@ -35,4 +39,12 @@ export interface LoanApplicationResponse {
   vehicleYear?: number;
   vehicleTrim?: string;
   vehicleVin?: string;
+  // Detail fields from ApplicationDetailResponse
+  links?: Record<string, string>;
+  personalInfo?: Record<string, string>;
+  carDetails?: Record<string, string>;
+  loanDetails?: Record<string, string>;
+  employmentInfo?: Record<string, string>;
+  documents?: Record<string, unknown>[];
+  statusHistories?: Record<string, unknown>[];
 }
