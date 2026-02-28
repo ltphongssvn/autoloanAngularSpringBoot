@@ -26,7 +26,7 @@ import { LoanApplicationResponse } from '../../core/models/loan.model';
         <div class="filters">
           <div class="filter-group">
             <label for="statusFilter">Filter by Status</label>
-            <select id="statusFilter" [(ngModel)]="statusFilter">
+            <select id="statusFilter" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
               <option value="">All Statuses</option>
               <option value="DRAFT">Draft</option>
               <option value="SUBMITTED">Submitted</option>
@@ -39,7 +39,7 @@ import { LoanApplicationResponse } from '../../core/models/loan.model';
           </div>
           <div class="filter-group">
             <label for="sortBy">Sort By</label>
-            <select id="sortBy" [(ngModel)]="sortBy">
+            <select id="sortBy" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
             </select>
@@ -140,18 +140,20 @@ export class DashboardComponent implements OnInit {
 
   user = this.authService.currentUser;
   applications = signal<LoanApplicationResponse[]>([]);
-  statusFilter = '';
-  sortBy = 'newest';
+  statusFilter = signal('');
+  sortBy = signal('newest');
 
   filteredApplications = computed(() => {
     let apps = [...this.applications()];
-    if (this.statusFilter) {
-      apps = apps.filter(a => a.status === this.statusFilter);
+    const filter = this.statusFilter();
+    if (filter) {
+      apps = apps.filter(a => a.status === filter);
     }
+    const sort = this.sortBy();
     apps.sort((a, b) => {
       const dateA = new Date(a.updatedAt).getTime();
       const dateB = new Date(b.updatedAt).getTime();
-      return this.sortBy === 'newest' ? dateB - dateA : dateA - dateB;
+      return sort === 'newest' ? dateB - dateA : dateA - dateB;
     });
     return apps;
   });
