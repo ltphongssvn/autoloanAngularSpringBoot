@@ -75,6 +75,29 @@ describe('DashboardComponent', () => {
     expect(component.formatStatus('PENDING_DOCUMENTS')).toBe('Pending Documents');
   });
 
+  it('should delete a draft application', () => {
+    httpMock.expectOne('http://localhost:8080/api/loans').flush({ data: mockApps });
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    component.deleteApp(1);
+
+    const deleteReq = httpMock.expectOne('http://localhost:8080/api/loans/1');
+    expect(deleteReq.request.method).toBe('DELETE');
+    deleteReq.flush(null);
+
+    expect(component.applications().length).toBe(1);
+    expect(component.applications()[0].id).toBe(8);
+  });
+
+  it('should not delete if confirm is cancelled', () => {
+    httpMock.expectOne('http://localhost:8080/api/loans').flush({ data: mockApps });
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    component.deleteApp(1);
+
+    expect(component.applications().length).toBe(2);
+  });
+
   it('should logout and navigate to login', () => {
     httpMock.expectOne('http://localhost:8080/api/loans').flush({ data: [] });
     const navSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
