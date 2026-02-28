@@ -43,7 +43,7 @@ describe('LoanService', () => {
     });
     const req = httpMock.expectOne(apiUrl);
     expect(req.request.method).toBe('GET');
-    req.flush(mockApps);
+    req.flush({data: {data: mockApps}});
   });
 
   it('should get a single application', () => {

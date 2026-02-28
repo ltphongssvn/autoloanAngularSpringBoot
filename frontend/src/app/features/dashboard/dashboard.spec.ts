@@ -43,7 +43,7 @@ describe('DashboardComponent', () => {
       vehicleMake: 'Toyota', vehicleModel: 'Camry', vehicleYear: 2024
     }];
 
-    httpMock.expectOne('http://localhost:8080/api/loans').flush(mockApps);
+    httpMock.expectOne('http://localhost:8080/api/loans').flush({data: {data: mockApps}});
     expect(component.applications().length).toBe(1);
   });
 

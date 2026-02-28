@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { LoanApplicationRequest, LoanApplicationResponse } from '../models/loan.model';
 import { StatusHistoryResponse } from './loan-officer.service';
@@ -17,7 +18,9 @@ export class LoanService {
   }
 
   getApplications(): Observable<LoanApplicationResponse[]> {
-    return this.http.get<LoanApplicationResponse[]>(this.apiUrl);
+    return this.http.get<Record<string, unknown>>(this.apiUrl).pipe(
+      map((res) => { const outer = res?.['data'] as Record<string, unknown> | undefined; return (outer?.['data'] as LoanApplicationResponse[]) ?? (outer as unknown as LoanApplicationResponse[]) ?? []; })
+    );
   }
 
   getApplication(id: number): Observable<LoanApplicationResponse> {

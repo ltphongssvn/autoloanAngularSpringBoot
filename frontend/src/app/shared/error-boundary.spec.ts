@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { ErrorBoundaryComponent, GlobalErrorHandler } from './error-boundary';
 
@@ -5,6 +6,7 @@ describe('GlobalErrorHandler', () => {
   let handler: GlobalErrorHandler;
 
   beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
     TestBed.configureTestingModule({});
     handler = TestBed.inject(GlobalErrorHandler);
   });
