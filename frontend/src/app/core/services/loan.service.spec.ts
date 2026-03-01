@@ -2,17 +2,12 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { LoanService } from './loan.service';
+import { environment } from '../../../environments/environment';
 
 describe('LoanService', () => {
   let service: LoanService;
   let httpMock: HttpTestingController;
-
-  const mockLoan = {
-    id: 1, applicationNumber: 'APP-123', status: 'DRAFT', currentStep: 1,
-    loanAmount: 25000, downPayment: 5000, loanTerm: 36, userId: 1,
-    createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z',
-    vehicleMake: 'Toyota', vehicleModel: 'Camry', vehicleYear: 2024
-  };
+  const apiUrl = `${environment.apiUrl}/loans`;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -22,45 +17,107 @@ describe('LoanService', () => {
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => httpMock.verify());
+  afterEach(() => {
+    httpMock.verify();
+  });
 
-  it('should create application', () => {
-    const request = {
-      loanAmount: 25000, downPayment: 5000, loanTerm: 36,
-      vehicleMake: 'Toyota', vehicleModel: 'Camry', vehicleYear: 2024
-    };
-    service.createApplication(request).subscribe(res => {
-      expect(res.applicationNumber).toBe('APP-123');
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+
+  it('should create an application', () => {
+    const mockApp = { id: 1, status: 'DRAFT' };
+    const request = { loanAmount: 25000, downPayment: 5000, loanTerm: 36, vehicleMake: 'Toyota', vehicleModel: 'Camry', vehicleYear: 2024 };
+    service.createApplication(request).subscribe(app => {
+      expect(app.id).toBe(1);
     });
-    const req = httpMock.expectOne('http://localhost:8080/api/loans');
+    const req = httpMock.expectOne(apiUrl);
     expect(req.request.method).toBe('POST');
-    req.flush(mockLoan);
+    req.flush(mockApp);
   });
 
-  it('should get applications', () => {
-    service.getApplications().subscribe(res => {
-      expect(res.length).toBe(1);
+  it('should get all applications', () => {
+    const mockApps = [{ id: 1, status: 'DRAFT' }];
+    service.getApplications().subscribe(apps => {
+      expect(apps.length).toBe(1);
     });
-    const req = httpMock.expectOne('http://localhost:8080/api/loans');
+    const req = httpMock.expectOne(apiUrl);
     expect(req.request.method).toBe('GET');
-    req.flush([mockLoan]);
+    req.flush({data: mockApps});
   });
 
-  it('should get single application', () => {
-    service.getApplication(1).subscribe(res => {
-      expect(res.id).toBe(1);
+  it('should get a single application', () => {
+    service.getApplication(1).subscribe(app => {
+      expect(app.id).toBe(1);
     });
-    const req = httpMock.expectOne('http://localhost:8080/api/loans/1');
+    const req = httpMock.expectOne(`${apiUrl}/1`);
     expect(req.request.method).toBe('GET');
-    req.flush(mockLoan);
+    req.flush({ id: 1, status: 'DRAFT' });
   });
 
-  it('should submit application', () => {
-    service.submitApplication(1).subscribe(res => {
-      expect(res.status).toBe('SUBMITTED');
+  it('should update an application', () => {
+    service.updateApplication(1, { loanAmount: 30000 }).subscribe(app => {
+      expect(app.id).toBe(1);
     });
-    const req = httpMock.expectOne('http://localhost:8080/api/loans/1/submit');
+    const req = httpMock.expectOne(`${apiUrl}/1`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ loanAmount: 30000 });
+    req.flush({ id: 1, status: 'DRAFT' });
+  });
+
+  it('should delete an application', () => {
+    service.deleteApplication(1).subscribe();
+    const req = httpMock.expectOne(`${apiUrl}/1`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
+  });
+
+  it('should submit an application', () => {
+    service.submitApplication(1).subscribe(app => {
+      expect(app.status).toBe('SUBMITTED');
+    });
+    const req = httpMock.expectOne(`${apiUrl}/1/submit`);
     expect(req.request.method).toBe('POST');
-    req.flush({ ...mockLoan, status: 'SUBMITTED' });
+    req.flush({ id: 1, status: 'SUBMITTED' });
+  });
+
+  it('should sign an application', () => {
+    service.signApplication(1, 'base64sig').subscribe(app => {
+      expect(app.id).toBe(1);
+    });
+    const req = httpMock.expectOne(`${apiUrl}/1/sign`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ signatureData: 'base64sig' });
+    req.flush({ id: 1, status: 'APPROVED' });
+  });
+
+  it('should update status', () => {
+    service.updateStatus(1, 'IN_REVIEW', 'Looks good').subscribe();
+    const req = httpMock.expectOne(`${apiUrl}/1/status`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ status: 'IN_REVIEW', comment: 'Looks good' });
+    req.flush({ id: 1, status: 'IN_REVIEW' });
+  });
+
+  it('should get agreement PDF as blob', () => {
+    const mockBlob = new Blob(['pdf content'], { type: 'application/pdf' });
+    service.agreementPdf(1).subscribe(blob => {
+      expect(blob.size).toBeGreaterThan(0);
+    });
+    const req = httpMock.expectOne(`${apiUrl}/1/agreement_pdf`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.responseType).toBe('blob');
+    req.flush(mockBlob);
+  });
+
+  it('should get application history', () => {
+    const mockHistory = [{ id: 1, fromStatus: 'DRAFT', toStatus: 'SUBMITTED', userId: 10, createdAt: '' }];
+    service.getHistory(1).subscribe(history => {
+      expect(history.length).toBe(1);
+      expect(history[0].toStatus).toBe('SUBMITTED');
+    });
+    const req = httpMock.expectOne(`${apiUrl}/1/history`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockHistory);
   });
 });

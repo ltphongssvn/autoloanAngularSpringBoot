@@ -30,6 +30,14 @@ class LoanIntegrationTest extends BaseIntegrationTest {
     private String authToken;
     private Number loanId;
 
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> unwrapData(Map<String, Object> body) {
+        if (body.containsKey("data") && body.containsKey("status") && body.get("status") instanceof Map) {
+            return (Map<String, Object>) body.get("data");
+        }
+        return body;
+    }
+
     @BeforeAll
     void setUp() throws Exception {
         SignupRequest signup = new SignupRequest();
@@ -43,7 +51,9 @@ class LoanIntegrationTest extends BaseIntegrationTest {
         assertEquals(201, response.statusCode(),
                 "Signup failed: " + response.body());
         Map<String, Object> body = parseBody(response);
-        authToken = (String) body.get("token");
+        Map<String, Object> data = unwrapData(body);
+        authToken = (String) data.get("token");
+        assertNotNull(authToken, "Auth token should not be null after signup");
     }
 
     private HttpResponse<String> post(String path, Object body, String token) throws Exception {
@@ -73,11 +83,6 @@ class LoanIntegrationTest extends BaseIntegrationTest {
         return objectMapper.readValue(response.body(), Map.class);
     }
 
-    @SuppressWarnings("unchecked")
-    private List<Map<String, Object>> parseList(HttpResponse<String> response) throws Exception {
-        return objectMapper.readValue(response.body(), List.class);
-    }
-
     private LoanApplicationRequest createValidLoanRequest() {
         LoanApplicationRequest req = new LoanApplicationRequest();
         req.setLoanAmount(new BigDecimal("25000.00"));
@@ -94,22 +99,29 @@ class LoanIntegrationTest extends BaseIntegrationTest {
     void createLoanShouldReturnCreated() throws Exception {
         HttpResponse<String> response = post("/api/loans", createValidLoanRequest(), authToken);
         Map<String, Object> body = parseBody(response);
+        Map<String, Object> data = unwrapData(body);
 
         assertEquals(201, response.statusCode());
-        assertNotNull(body.get("id"));
-        assertEquals("DRAFT", body.get("status"));
-        loanId = (Number) body.get("id");
+        assertNotNull(data.get("id"));
+        assertEquals("DRAFT", data.get("status"));
+        loanId = (Number) data.get("id");
     }
 
     @Test
     @Order(2)
+    @SuppressWarnings("unchecked")
     void getUserLoansShouldReturnList() throws Exception {
         HttpResponse<String> response = get("/api/loans", authToken);
-        List<Map<String, Object>> loans = parseList(response);
+        Map<String, Object> body = parseBody(response);
+        Map<String, Object> data = unwrapData(body);
 
         assertEquals(200, response.statusCode());
+        List<Map<String, Object>> loans = (List<Map<String, Object>>) data.get("data");
+        assertNotNull(loans);
         assertFalse(loans.isEmpty());
         assertEquals("DRAFT", loans.get(0).get("status"));
+        assertEquals(1, ((Number) data.get("page")).intValue());
+        assertTrue(((Number) data.get("total")).intValue() > 0);
     }
 
     @Test
@@ -117,11 +129,12 @@ class LoanIntegrationTest extends BaseIntegrationTest {
     void getLoanByIdShouldReturnLoan() throws Exception {
         HttpResponse<String> response = get("/api/loans/" + loanId, authToken);
         Map<String, Object> body = parseBody(response);
+        Map<String, Object> data = unwrapData(body);
 
         assertEquals(200, response.statusCode());
-        assertEquals(loanId.intValue(), ((Number) body.get("id")).intValue());
-        assertEquals("Toyota", body.get("vehicleMake"));
-        assertEquals("Camry", body.get("vehicleModel"));
+        assertEquals(loanId.intValue(), ((Number) data.get("id")).intValue());
+        assertEquals("Toyota", data.get("vehicleMake"));
+        assertEquals("Camry", data.get("vehicleModel"));
     }
 
     @Test
@@ -129,9 +142,10 @@ class LoanIntegrationTest extends BaseIntegrationTest {
     void submitLoanShouldChangeStatus() throws Exception {
         HttpResponse<String> response = post("/api/loans/" + loanId + "/submit", "{}", authToken);
         Map<String, Object> body = parseBody(response);
+        Map<String, Object> data = unwrapData(body);
 
         assertEquals(200, response.statusCode());
-        assertEquals("SUBMITTED", body.get("status"));
+        assertEquals("SUBMITTED", data.get("status"));
     }
 
     @Test

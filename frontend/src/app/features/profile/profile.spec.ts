@@ -7,7 +7,6 @@ import { ProfileComponent } from './profile';
 describe('ProfileComponent', () => {
   let component: ProfileComponent;
   let httpMock: HttpTestingController;
-
   const mockProfile = {
     id: 1, email: 'test@example.com', firstName: 'John', lastName: 'Doe',
     phone: '555-1234', role: 'CUSTOMER', signInCount: 3, createdAt: '2026-01-01'
@@ -34,12 +33,11 @@ describe('ProfileComponent', () => {
 
   it('should update profile', () => {
     httpMock.expectOne('http://localhost:8080/api/users/me').flush(mockProfile);
-
     component.form.setValue({ firstName: 'Jane', lastName: 'Smith', phone: '555-9999' });
     component.onSubmit();
 
     const req = httpMock.expectOne('http://localhost:8080/api/users/me');
-    expect(req.request.method).toBe('PUT');
+    expect(req.request.method).toBe('PATCH');
     req.flush({ ...mockProfile, firstName: 'Jane', lastName: 'Smith', phone: '555-9999' });
 
     expect(component.profile()?.firstName).toBe('Jane');
@@ -48,13 +46,10 @@ describe('ProfileComponent', () => {
 
   it('should show error on update failure', () => {
     httpMock.expectOne('http://localhost:8080/api/users/me').flush(mockProfile);
-
     component.form.setValue({ firstName: 'Jane', lastName: 'Smith', phone: '555-9999' });
     component.onSubmit();
-
     httpMock.expectOne('http://localhost:8080/api/users/me')
       .flush({ message: 'Update failed' }, { status: 400, statusText: 'Bad Request' });
-
     expect(component.errorMessage).toBe('Update failed');
   });
 });

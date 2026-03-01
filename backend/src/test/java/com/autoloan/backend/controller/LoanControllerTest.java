@@ -8,6 +8,7 @@ import com.autoloan.backend.dto.application.ApplicationSignRequest;
 import com.autoloan.backend.dto.application.StatusHistoryResponse;
 import com.autoloan.backend.dto.loan.LoanApplicationRequest;
 import com.autoloan.backend.dto.loan.LoanApplicationResponse;
+import com.autoloan.backend.dto.loan.PaginatedResponse;
 import com.autoloan.backend.exception.BadRequestException;
 import com.autoloan.backend.exception.GlobalExceptionHandler;
 import com.autoloan.backend.exception.ResourceNotFoundException;
@@ -28,7 +29,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -106,13 +110,19 @@ class LoanControllerTest {
 
     @Test
     void getUserApplicationsShouldReturn200() throws Exception {
+        PaginatedResponse<LoanApplicationResponse> paginatedResponse = new PaginatedResponse<>(
+                List.of(loanResponse), 1, 20, 1, 1);
+
         when(jwtTokenProvider.getUserIdFromToken("valid-token")).thenReturn(1L);
-        when(loanService.getUserApplications(1L)).thenReturn(List.of(loanResponse));
+        when(loanService.getApplicationsPaginated(eq(1L), isNull(), isNull(), isNull(), eq(1), eq(20)))
+                .thenReturn(paginatedResponse);
 
         mockMvc.perform(get("/api/loans")
                         .header("Authorization", "Bearer valid-token"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].applicationNumber").value("APP-12345678"));
+                .andExpect(jsonPath("$.data[0].applicationNumber").value("APP-12345678"))
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.total").value(1));
     }
 
     @Test

@@ -1,9 +1,11 @@
+// backend/src/main/java/com/autoloan/backend/controller/LoanOfficerController.java
 package com.autoloan.backend.controller;
 
 import com.autoloan.backend.dto.application.ApplicationApprovalRequest;
 import com.autoloan.backend.dto.application.ApplicationRejectRequest;
 import com.autoloan.backend.dto.application.StatusHistoryResponse;
 import com.autoloan.backend.dto.loan.LoanApplicationResponse;
+import com.autoloan.backend.dto.loan.PaginatedResponse;
 import com.autoloan.backend.dto.note.NoteCreateRequest;
 import com.autoloan.backend.dto.note.NoteResponse;
 import com.autoloan.backend.security.JwtTokenProvider;
@@ -13,12 +15,14 @@ import com.autoloan.backend.service.NoteService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/loan-officer/applications")
+@PreAuthorize("hasAnyRole('LOAN_OFFICER', 'UNDERWRITER')")
 public class LoanOfficerController {
 
     private final LoanService loanService;
@@ -37,8 +41,13 @@ public class LoanOfficerController {
     }
 
     @GetMapping
-    public ResponseEntity<List<LoanApplicationResponse>> findAll() {
-        return ResponseEntity.ok(loanService.getAllApplications());
+    public ResponseEntity<PaginatedResponse<LoanApplicationResponse>> findAll(
+            @RequestParam(name = "$filter", required = false) String filter,
+            @RequestParam(name = "$orderby", required = false) String orderby,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(name = "per_page", defaultValue = "20") int perPage) {
+        return ResponseEntity.ok(loanService.getApplicationsPaginated(null, filter, orderby, status, page, perPage));
     }
 
     @GetMapping("/{id}")
@@ -48,6 +57,13 @@ public class LoanOfficerController {
 
     @PatchMapping("/{id}/verify")
     public ResponseEntity<LoanApplicationResponse> startVerification(
+            HttpServletRequest request, @PathVariable Long id) {
+        Long userId = getUserIdFromRequest(request);
+        return ResponseEntity.ok(workflowService.startVerification(id, userId));
+    }
+
+    @PostMapping("/{id}/start_verification")
+    public ResponseEntity<LoanApplicationResponse> startVerificationPost(
             HttpServletRequest request, @PathVariable Long id) {
         Long userId = getUserIdFromRequest(request);
         return ResponseEntity.ok(workflowService.startVerification(id, userId));
@@ -67,6 +83,13 @@ public class LoanOfficerController {
         return ResponseEntity.ok(workflowService.requestDocuments(id, userId));
     }
 
+    @PostMapping("/{id}/request_documents")
+    public ResponseEntity<LoanApplicationResponse> requestDocumentsPost(
+            HttpServletRequest request, @PathVariable Long id) {
+        Long userId = getUserIdFromRequest(request);
+        return ResponseEntity.ok(workflowService.requestDocuments(id, userId));
+    }
+
     @PatchMapping("/{id}/approve")
     public ResponseEntity<LoanApplicationResponse> approve(
             HttpServletRequest request, @PathVariable Long id,
@@ -75,8 +98,25 @@ public class LoanOfficerController {
         return ResponseEntity.ok(workflowService.approve(id, userId, approvalRequest));
     }
 
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<LoanApplicationResponse> approvePost(
+            HttpServletRequest request, @PathVariable Long id,
+            @RequestBody(required = false) ApplicationApprovalRequest approvalRequest) {
+        Long userId = getUserIdFromRequest(request);
+        return ResponseEntity.ok(workflowService.approve(id, userId, approvalRequest));
+    }
+
     @PatchMapping("/{id}/reject")
     public ResponseEntity<LoanApplicationResponse> reject(
+            HttpServletRequest request, @PathVariable Long id,
+            @RequestBody(required = false) ApplicationRejectRequest rejectRequest) {
+        Long userId = getUserIdFromRequest(request);
+        String reason = rejectRequest != null ? rejectRequest.getReason() : null;
+        return ResponseEntity.ok(workflowService.reject(id, userId, reason));
+    }
+
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<LoanApplicationResponse> rejectPost(
             HttpServletRequest request, @PathVariable Long id,
             @RequestBody(required = false) ApplicationRejectRequest rejectRequest) {
         Long userId = getUserIdFromRequest(request);
@@ -95,6 +135,11 @@ public class LoanOfficerController {
             @Valid @RequestBody NoteCreateRequest noteRequest) {
         Long userId = getUserIdFromRequest(request);
         return ResponseEntity.ok(noteService.createNote(id, userId, noteRequest));
+    }
+
+    @GetMapping("/{id}/notes")
+    public ResponseEntity<List<NoteResponse>> getNotes(@PathVariable Long id) {
+        return ResponseEntity.ok(noteService.getNotesByApplication(id));
     }
 
     private Long getUserIdFromRequest(HttpServletRequest request) {

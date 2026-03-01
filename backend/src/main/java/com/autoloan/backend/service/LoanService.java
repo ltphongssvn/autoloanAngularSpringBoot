@@ -1,14 +1,20 @@
+// backend/src/main/java/com/autoloan/backend/service/LoanService.java
 package com.autoloan.backend.service;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.autoloan.backend.dto.loan.LoanApplicationRequest;
 import com.autoloan.backend.dto.loan.LoanApplicationResponse;
+import com.autoloan.backend.dto.loan.PaginatedResponse;
 import com.autoloan.backend.exception.BadRequestException;
 import com.autoloan.backend.exception.ResourceNotFoundException;
 import com.autoloan.backend.model.Application;
@@ -94,6 +100,37 @@ public class LoanService {
                     return toResponse(app, vehicle);
                 })
                 .toList();
+    }
+
+    public PaginatedResponse<LoanApplicationResponse> getApplicationsPaginated(
+            Long userId, String filter, String orderby, String status,
+            int page, int perPage) {
+
+        Specification<Application> spec = ApplicationSpecification.noOp();
+
+        if (userId != null) {
+            spec = spec.and(ApplicationSpecification.withUserId(userId));
+        }
+        if (status != null && !status.isBlank()) {
+            spec = spec.and(ApplicationSpecification.withStatus(status));
+        }
+        if (filter != null && !filter.isBlank()) {
+            spec = spec.and(ApplicationSpecification.fromOdataFilter(filter));
+        }
+
+        Sort sort = ApplicationSpecification.parseOdataOrderby(orderby);
+        PageRequest pageRequest = PageRequest.of(Math.max(0, page - 1), Math.max(1, perPage), sort);
+
+        Page<Application> result = applicationRepository.findAll(spec, pageRequest);
+
+        List<LoanApplicationResponse> data = result.getContent().stream()
+                .map(app -> {
+                    Vehicle vehicle = vehicleRepository.findByApplicationId(app.getId()).orElse(null);
+                    return toResponse(app, vehicle);
+                })
+                .toList();
+
+        return new PaginatedResponse<>(data, page, perPage, result.getTotalElements(), result.getTotalPages());
     }
 
     @Transactional

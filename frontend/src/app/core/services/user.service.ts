@@ -8,7 +8,6 @@ import { UserProfile, UserUpdateRequest } from '../models/user.model';
   providedIn: 'root'
 })
 export class UserService {
-
   private readonly apiUrl = `${environment.apiUrl}/users`;
   private readonly http = inject(HttpClient);
 
@@ -17,6 +16,6 @@ export class UserService {
   }
 
   updateProfile(request: UserUpdateRequest): Observable<UserProfile> {
-    return this.http.put<UserProfile>(`${this.apiUrl}/me`, request);
+    return this.http.patch<UserProfile>(`${this.apiUrl}/me`, request);
   }
 }

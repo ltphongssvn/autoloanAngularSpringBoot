@@ -1,0 +1,14 @@
+# Dockerfile.frontend - Root-level Dockerfile for Railway deployment (Angular/Nginx frontend)
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci --retry 3
+COPY frontend/ .
+RUN npx ng build --configuration=production
+FROM nginx:alpine
+COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
+COPY frontend/nginx.conf /etc/nginx/templates/default.conf.template
+ENV PORT=80
+ENV BACKEND_URL=http://backend-angularspringboot.railway.internal:8080
+EXPOSE 80
+CMD ["/bin/sh", "-c", "envsubst '${PORT} ${BACKEND_URL}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
