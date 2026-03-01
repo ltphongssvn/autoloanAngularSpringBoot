@@ -33,6 +33,10 @@ public class ApiKey {
     @Builder.Default
     private boolean active = true;
 
+    @Column(length = 1024)
+    @Builder.Default
+    private String scopes = "";
+
     @Column(name = "expires_at")
     private Instant expiresAt;
 

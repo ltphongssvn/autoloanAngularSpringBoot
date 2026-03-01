@@ -4,6 +4,7 @@ import com.autoloan.backend.dto.application.ApplicationRejectRequest;
 import com.autoloan.backend.dto.application.StatusHistoryResponse;
 import com.autoloan.backend.dto.document.DocumentResponse;
 import com.autoloan.backend.dto.loan.LoanApplicationResponse;
+import com.autoloan.backend.dto.loan.PaginatedResponse;
 import com.autoloan.backend.dto.note.NoteCreateRequest;
 import com.autoloan.backend.dto.note.NoteResponse;
 import com.autoloan.backend.exception.GlobalExceptionHandler;
@@ -23,7 +24,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.time.Instant;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -62,12 +62,17 @@ class UnderwriterControllerTest {
 
     @Test
     void findAll_returns200() throws Exception {
-        when(loanService.getAllApplications()).thenReturn(List.of(testResponse));
+        PaginatedResponse<LoanApplicationResponse> paginatedResponse = new PaginatedResponse<>(
+                List.of(testResponse), 1, 20, 1, 1);
+        when(loanService.getApplicationsPaginated(isNull(), isNull(), isNull(), isNull(), eq(1), eq(20)))
+                .thenReturn(paginatedResponse);
 
         mockMvc.perform(get("/api/underwriter/applications")
                         .header("Authorization", "Bearer valid-token"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1));
+                .andExpect(jsonPath("$.data[0].id").value(1))
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.total").value(1));
     }
 
     @Test

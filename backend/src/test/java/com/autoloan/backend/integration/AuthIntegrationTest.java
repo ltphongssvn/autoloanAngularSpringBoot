@@ -38,6 +38,14 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         return objectMapper.readValue(response.body(), Map.class);
     }
 
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> unwrapData(Map<String, Object> body) {
+        if (body.containsKey("data") && body.containsKey("status") && body.get("status") instanceof Map) {
+            return (Map<String, Object>) body.get("data");
+        }
+        return body;
+    }
+
     @Test
     @Order(1)
     void signupShouldCreateUserAndReturnToken() throws Exception {
@@ -50,12 +58,13 @@ class AuthIntegrationTest extends BaseIntegrationTest {
 
         HttpResponse<String> response = post("/api/auth/signup", request);
         Map<String, Object> body = parseBody(response);
+        Map<String, Object> data = unwrapData(body);
 
         assertEquals(201, response.statusCode());
-        assertNotNull(body.get("token"));
-        assertEquals("integration@example.com", body.get("email"));
-        assertEquals("Integration", body.get("firstName"));
-        assertEquals("CUSTOMER", body.get("role"));
+        assertNotNull(data.get("token"));
+        assertEquals("integration@example.com", data.get("email"));
+        assertEquals("Integration", data.get("firstName"));
+        assertEquals("CUSTOMER", data.get("role"));
     }
 
     @Test
@@ -84,10 +93,11 @@ class AuthIntegrationTest extends BaseIntegrationTest {
 
         HttpResponse<String> response = post("/api/auth/login", request);
         Map<String, Object> body = parseBody(response);
+        Map<String, Object> data = unwrapData(body);
 
         assertEquals(200, response.statusCode());
-        assertNotNull(body.get("token"));
-        assertEquals("integration@example.com", body.get("email"));
+        assertNotNull(data.get("token"));
+        assertEquals("integration@example.com", data.get("email"));
     }
 
     @Test

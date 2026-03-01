@@ -1,3 +1,4 @@
+// backend/src/main/java/com/autoloan/backend/service/ApplicationWorkflowService.java
 package com.autoloan.backend.service;
 
 import com.autoloan.backend.dto.application.ApplicationApprovalRequest;
@@ -31,6 +32,29 @@ public class ApplicationWorkflowService {
         this.applicationRepository = applicationRepository;
         this.statusHistoryRepository = statusHistoryRepository;
         this.vehicleRepository = vehicleRepository;
+    }
+
+    @Transactional
+    public LoanApplicationResponse updateStatus(Long applicationId, Long userId,
+                                                 String status, String comment) {
+        Application app = getApplication(applicationId);
+        ApplicationStatus newStatus;
+        try {
+            newStatus = ApplicationStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid status: " + status);
+        }
+
+        if (app.getStatus() == newStatus) {
+            throw new BadRequestException("Application is already in status " + status);
+        }
+
+        if (newStatus == ApplicationStatus.APPROVED || newStatus == ApplicationStatus.REJECTED) {
+            app.setDecidedAt(Instant.now());
+        }
+
+        return transition(app, newStatus, userId,
+                comment != null ? comment : "Status updated to " + newStatus.name());
     }
 
     @Transactional

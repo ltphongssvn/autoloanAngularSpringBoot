@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
@@ -56,6 +57,11 @@ public class JwtTokenProvider {
     public String getJtiFromToken(String token) {
         Claims claims = parseToken(token);
         return claims.getId();
+    }
+
+    public Instant getExpirationFromToken(String token) {
+        Claims claims = parseToken(token);
+        return claims.getExpiration().toInstant();
     }
 
     public boolean validateToken(String token) {
