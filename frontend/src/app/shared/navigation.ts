@@ -17,13 +17,7 @@ import { AuthService } from '../core/services/auth.service';
         <div class="nav-links">
           <a [routerLink]="dashboardLink()" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
 
-          @if (authService.userRole() === 'LOAN_OFFICER') {
-            <a routerLink="/dashboard/loan-officer" routerLinkActive="active">Officer Queue</a>
-          }
 
-          @if (authService.userRole() === 'UNDERWRITER') {
-            <a routerLink="/dashboard/underwriter" routerLinkActive="active">Underwriter Queue</a>
-          }
 
           @if (authService.userRole() === 'CUSTOMER') {
             <a routerLink="/loans/new" routerLinkActive="active">New Application</a>
