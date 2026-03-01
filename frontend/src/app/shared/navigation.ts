@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
@@ -15,7 +15,7 @@ import { AuthService } from '../core/services/auth.service';
 
       @if (authService.isAuthenticated()) {
         <div class="nav-links">
-          <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
+          <a [routerLink]="dashboardLink()" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</a>
 
           @if (authService.userRole() === 'LOAN_OFFICER') {
             <a routerLink="/dashboard/loan-officer" routerLinkActive="active">Officer Queue</a>
@@ -62,6 +62,12 @@ import { AuthService } from '../core/services/auth.service';
 })
 export class NavigationComponent {
   readonly authService = inject(AuthService);
+  readonly dashboardLink = computed(() => {
+    const role = this.authService.userRole();
+    if (role === 'LOAN_OFFICER') return '/dashboard/loan-officer';
+    if (role === 'UNDERWRITER') return '/dashboard/underwriter';
+    return '/dashboard';
+  });
   private readonly router = inject(Router);
 
   logout(): void {
